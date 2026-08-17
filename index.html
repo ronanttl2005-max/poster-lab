@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poster Lab · 海报灵感系统</title>
+  <meta name="description" content="个人海报设计系统：灵感分类库 + 风格体系 + 可编辑海报模板" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="vendor/html-to-image.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#/gallery">Poster<span>Lab</span></a>
+    <nav class="nav">
+      <a href="#/gallery" data-route="gallery">灵感库</a>
+      <a href="#/styles" data-route="styles">风格体系</a>
+      <a href="#/editor" data-route="editor">模板工坊</a>
+      <a href="#/workflow" data-route="workflow">工作流</a>
+    </nav>
+  </header>
+
+  <main id="app"></main>
+
+  <div id="lightbox" class="lightbox hidden">
+    <div class="lightbox-backdrop"></div>
+    <div class="lightbox-panel">
+      <button class="lightbox-close" title="关闭">×</button>
+      <div class="lightbox-img-wrap"><img alt="" /></div>
+      <div class="lightbox-meta"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Poster Lab — 把散落的灵感沉淀成可复用的设计系统</span>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
