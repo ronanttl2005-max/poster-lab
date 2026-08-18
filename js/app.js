@@ -1,9 +1,13 @@
-import { STYLES, STYLE_MAP } from "../data/styles.js";
-import { INSPIRATIONS } from "../data/inspirations.js";
+import { STYLES as BUNDLED_STYLES } from "../data/styles.js";
+import { INSPIRATIONS as BUNDLED_INSPIRATIONS } from "../data/inspirations.js";
 import { mountEditor } from "./editor.js";
+import { loadCatalog } from "./api.js";
 
 const app = document.getElementById("app");
 const IMG = (f) => `assets/inspirations/${f}`;
+let styles = BUNDLED_STYLES;
+let inspirations = BUNDLED_INSPIRATIONS;
+let styleMap = Object.fromEntries(styles.map((style) => [style.id, style]));
 
 // ---------------- router ----------------
 const routes = {
@@ -31,17 +35,17 @@ let activeFilter = "all";
 function renderGallery(param) {
   if (param) activeFilter = param;
   const counts = {};
-  INSPIRATIONS.forEach((i) => (counts[i.styleId] = (counts[i.styleId] || 0) + 1));
+  inspirations.forEach((i) => (counts[i.styleId] = (counts[i.styleId] || 0) + 1));
 
   const chips = [
-    `<button class="chip ${activeFilter === "all" ? "active" : ""}" data-f="all">全部 <span class="count">${INSPIRATIONS.length}</span></button>`,
-    ...STYLES.filter((s) => counts[s.id]).map(
+    `<button class="chip ${activeFilter === "all" ? "active" : ""}" data-f="all">全部 <span class="count">${inspirations.length}</span></button>`,
+    ...styles.filter((s) => counts[s.id]).map(
       (s) =>
         `<button class="chip ${activeFilter === s.id ? "active" : ""}" data-f="${s.id}">${s.name} <span class="count">${counts[s.id]}</span></button>`
     ),
   ].join("");
 
-  const items = INSPIRATIONS.filter(
+  const items = inspirations.filter(
     (i) => activeFilter === "all" || i.styleId === activeFilter
   );
 
@@ -56,12 +60,12 @@ function renderGallery(param) {
       ${items
         .map(
           (i, idx) => `
-        <div class="card" data-idx="${INSPIRATIONS.indexOf(i)}">
+        <div class="card" data-idx="${inspirations.indexOf(i)}">
           <img src="${IMG(i.file)}" alt="${i.title}" loading="lazy" />
           <div class="card-body">
             <div class="card-title">${i.title}</div>
             <div class="card-tags">
-              <span class="tag style-tag">${STYLE_MAP[i.styleId]?.name || i.styleId}</span>
+              <span class="tag style-tag">${styleMap[i.styleId]?.name || i.styleId}</span>
               ${i.tags.slice(0, 3).map((t) => `<span class="tag">${t}</span>`).join("")}
             </div>
           </div>
@@ -84,8 +88,8 @@ function renderGallery(param) {
 // ---------------- lightbox ----------------
 const lb = document.getElementById("lightbox");
 function openLightbox(idx) {
-  const i = INSPIRATIONS[idx];
-  const s = STYLE_MAP[i.styleId];
+  const i = inspirations[idx];
+  const s = styleMap[i.styleId];
   lb.querySelector("img").src = IMG(i.file);
   lb.querySelector(".lightbox-meta").innerHTML = `
     <h3>${i.title}</h3>
@@ -105,10 +109,10 @@ function renderStyles(param) {
     <div class="page-head">
       <div class="en">Style System</div>
       <h1>风格体系</h1>
-      <p>把散落的喜好整理成 ${STYLES.filter((s) => s.id !== "reference-misc").length} 套可复用的设计语言。给甲方看方向、给 AI 喂提示词、给自己定规则，都从这里出发。</p>
+      <p>把散落的喜好整理成 ${styles.filter((s) => s.id !== "reference-misc").length} 套可复用的设计语言。给甲方看方向、给 AI 喂提示词、给自己定规则，都从这里出发。</p>
     </div>
-    ${STYLES.map((s) => {
-      const refs = INSPIRATIONS.filter((i) => i.styleId === s.id);
+    ${styles.map((s) => {
+      const refs = inspirations.filter((i) => i.styleId === s.id);
       return `
       <section class="style-card" id="style-${s.id}">
         <div class="style-card-head">
@@ -131,7 +135,7 @@ function renderStyles(param) {
           <button class="copy-btn" data-prompt="${s.aiPrompt.replace(/"/g, "&quot;")}">复制</button>
         </div>` : ""}
         <div class="style-thumbs">
-          ${refs.map((r) => `<img src="${IMG(r.file)}" alt="${r.title}" title="${r.title}" data-idx="${INSPIRATIONS.indexOf(r)}" loading="lazy" />`).join("")}
+          ${refs.map((r) => `<img src="${IMG(r.file)}" alt="${r.title}" title="${r.title}" data-idx="${inspirations.indexOf(r)}" loading="lazy" />`).join("")}
         </div>
         ${s.refs.length ? `<div class="style-refs">参考：${s.refs.join(" / ")}</div>` : ""}
       </section>`;
@@ -205,15 +209,27 @@ function renderWorkflow() {
       <div class="flow-card">
         <div class="num">DEPLOY</div>
         <h3>部署与同步</h3>
-        <p>本站是纯静态页面（无构建步骤），两种发布方式：</p>
+        <p>项目现在包含零依赖 Node 后端。推荐把前端与 API 作为一个服务部署：</p>
         <ul>
-          <li><b>GitHub Pages</b>：仓库 Settings → Pages → Deploy from branch → main / root</li>
-          <li><b>Vercel</b>：Import 该 GitHub 仓库，Framework 选 Other，直接 Deploy</li>
+          <li><b>Render / Railway</b>：导入 GitHub 仓库，启动命令使用 <code>npm start</code></li>
+          <li>设置 <code>HOST=0.0.0.0</code> 和安全的 <code>POSTER_LAB_ADMIN_TOKEN</code></li>
+          <li>需要长期保存 API 写入内容时，为 <code>POSTER_LAB_DATA_FILE</code> 配置持久磁盘</li>
         </ul>
-        <p>之后每次 AI 入库新灵感并 push，网页自动更新。</p>
+        <p>GitHub Pages 仍可作为只读静态模式使用；此时页面会自动回退到仓库内置数据，Node API 不会运行。</p>
         <pre><code>git add -A && git commit -m "add inspiration" && git push</code></pre>
       </div>
     </div>`;
 }
 
 route();
+
+loadCatalog({
+  fallbackInspirations: BUNDLED_INSPIRATIONS,
+  fallbackStyles: BUNDLED_STYLES,
+}).then((catalog) => {
+  if (catalog.source === "bundled") return;
+  inspirations = catalog.inspirations;
+  styles = catalog.styles;
+  styleMap = Object.fromEntries(styles.map((style) => [style.id, style]));
+  route();
+});

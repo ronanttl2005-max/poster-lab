@@ -1,6 +1,6 @@
 # Poster Lab · Agent 操作手册
 
-本仓库是一个**个人海报设计系统**：灵感分类库 + 风格体系 + 可编辑海报模板，纯静态网页（无构建步骤，直接开 `index.html` 或任意静态服务器即可运行）。
+本仓库是一个**个人海报设计系统**：灵感分类库 + 风格体系 + 可编辑海报模板 + Node.js REST API。前端仍然零构建，后端也不依赖第三方包；运行 `npm start` 即可同时启动网页和 API。
 
 作为 Agent，你最常被要求执行以下三类任务。**严格按流程执行，保持数据文件格式一致。**
 
@@ -45,21 +45,32 @@
 - `aiPrompt` 是给生图 AI 的中文提示词，要具体到构图、色彩、字体气质，一段话不分行。
 - 合并或重命名风格时，同步更新 `data/inspirations.js` 中所有对应的 `styleId`。
 
+## 任务四：维护后端 API
+
+- API 入口在 `server/index.js`，数据层在 `server/store.js`。
+- 保持 `GET /api/health`、`GET /api/bootstrap` 和三个集合接口兼容。
+- 不得移除写接口的 Bearer Token/本机限制，也不得放宽静态文件白名单。
+- `server/data.json` 是运行时覆盖数据，不应提交到 Git；种子数据仍以 `data/*.js` 和 `js/templates.js` 为准。
+- 云端运行需要 `HOST=0.0.0.0`；长期保存写入内容需要为 `POSTER_LAB_DATA_FILE` 配置持久磁盘。
+
 ---
 
 ## 校验
 
-改完后本地起服务快速自检（四个页面都点一遍，控制台无报错）：
+改完后先跑自动测试，再启动服务快速自检（四个页面都点一遍，控制台无报错）：
 
 ```bash
-python3 -m http.server 4173
+npm test
+npm start
 # 打开 http://localhost:4173
 ```
 
 ## 部署
 
-- **GitHub Pages**：Settings → Pages → Deploy from branch → `main` / root。
-- **Vercel**：Import 仓库，Framework 选 **Other**，无构建命令，输出目录留空，直接 Deploy。
+- 源码推送到 GitHub；包含参考图片时默认先使用私有仓库。
+- 全栈部署优先 Render/Railway：启动命令 `npm start`，健康检查 `/api/health`。
+- 配置 `HOST=0.0.0.0`、`POSTER_LAB_ADMIN_TOKEN`，需要持久写入时再挂载数据磁盘。
+- GitHub Pages 只能运行静态回退模式，不能运行 Node API。
 
 ## 禁止事项
 
