@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: poster-lab
+    runtime: node
+    plan: free
+    buildCommand: npm install --ignore-scripts
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_VERSION
+        value: "24"
+      - key: POSTER_LAB_ADMIN_TOKEN
+        generateValue: true

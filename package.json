@@ -1,0 +1,16 @@
+{
+  "name": "poster-lab",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Poster Lab static frontend with a local REST API",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "check": "node --check js/api.js && node --check js/app.js && node --check server/index.js && node --check server/store.js && node --test server/*.test.js",
+    "test": "node --test server/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
