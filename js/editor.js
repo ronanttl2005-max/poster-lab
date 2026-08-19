@@ -34,7 +34,9 @@ export function mountEditor(root) {
       <div>
         <div class="editor-stage-wrap">
           <div class="stage-scaler" id="stage-scaler">
-            <div id="poster-stage"></div>
+            <div class="stage-transform" id="stage-transform">
+              <div id="poster-stage"></div>
+            </div>
           </div>
         </div>
         <div class="editor-hint">750 × 1000 画布 · 导出为 2 倍分辨率 PNG（1500 × 2000）</div>
@@ -45,13 +47,16 @@ export function mountEditor(root) {
   const form = root.querySelector("#editor-form");
   const stage = root.querySelector("#poster-stage");
   const scaler = root.querySelector("#stage-scaler");
+  const stageTransform = root.querySelector("#stage-transform");
 
   function fitStage() {
     if (!root.isConnected) return;
     const wrap = root.querySelector(".editor-stage-wrap");
-    const avail = Math.min(wrap.clientWidth - 60, 640);
+    const wrapStyle = getComputedStyle(wrap);
+    const horizontalPadding = parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight);
+    const avail = Math.max(0, Math.min(wrap.clientWidth - horizontalPadding, 640));
     const scale = Math.min(avail / 750, 0.82);
-    scaler.style.transform = `scale(${scale})`;
+    stageTransform.style.transform = `scale(${scale})`;
     scaler.style.height = 1000 * scale + "px";
     scaler.style.width = 750 * scale + "px";
   }
