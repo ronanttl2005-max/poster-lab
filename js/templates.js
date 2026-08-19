@@ -287,7 +287,7 @@ export const TEMPLATES = [
     id: "type-grid",
     name: "编辑网格文字页",
     styleId: "minimal-editorial",
-    desc: "以文字为主角的 12 栏编辑网格：眉题、标题、正文和页码均可编辑",
+    desc: "以文字为主角的纵向编辑网格：眉题、标题、正文和页码均可编辑",
     fields: [
       { key: "eyebrow", label: "眉题 / 编号", type: "text", default: "FIELD NOTE / 06" },
       { key: "title", label: "主标题", type: "textarea", default: "Make space\nfor a clear idea." },
@@ -397,7 +397,8 @@ export const TEMPLATES = [
       { key: "angle", label: "第二层旋转角度", type: "range", default: "7", min: -18, max: 18 },
     ],
     render: (v) => {
-      const angle = Number(v.angle) || 7;
+      const parsedAngle = Number(v.angle);
+      const angle = Number.isFinite(parsedAngle) ? parsedAngle : 7;
       const lines = Array.from({ length: 27 }, (_, i) => `<span style="display:block;height:17px;border-top:1px solid ${v.wave};transform:skewY(${Math.sin(i / 2) * 7}deg);"></span>`).join("");
       return `
       <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};padding:50px 52px;font-family:Helvetica,Arial,sans-serif;overflow:hidden;">
@@ -428,7 +429,7 @@ export const TEMPLATES = [
     ],
     render: (v) => `
       <div style="position:absolute;inset:0;background:${v.paper};padding:48px 54px;color:${v.blue};font-family:Helvetica,Arial,sans-serif;">
-        <div style="position:absolute;inset:54px;background:${v.blue};overflow:hidden;">
+        <div style="position:absolute;top:54px;left:54px;right:54px;bottom:150px;background:${v.blue};overflow:hidden;">
           <div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 40%,rgba(255,255,255,.09),transparent 48%);"></div>
           <div style="position:absolute;left:50%;top:49%;width:470px;height:600px;transform:translate(-50%,-50%) rotate(-12deg);border-left:7px solid ${v.negative};border-radius:55% 45% 48% 52%;opacity:.92;"></div>
           <div style="position:absolute;left:47%;top:47%;width:220px;height:430px;transform:translate(-50%,-50%) rotate(-12deg);border-left:5px solid ${v.negative};border-radius:50%;opacity:.85;"></div>
@@ -436,7 +437,7 @@ export const TEMPLATES = [
           <div style="position:absolute;left:42px;top:42px;color:${v.negative};font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;">${esc(v.title)}</div>
           <div style="position:absolute;left:42px;bottom:40px;color:${v.negative};font-family:Georgia,serif;font-size:54px;line-height:.95;">${esc(v.subject)}</div>
         </div>
-        <div style="position:absolute;left:54px;right:54px;bottom:22px;display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.65;white-space:pre-wrap;"><span>${esc(v.details)}</span><span>ARCHIVE 055</span></div>
+        <div style="position:absolute;left:54px;right:54px;bottom:34px;display:flex;justify-content:space-between;align-items:flex-end;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.65;white-space:pre-wrap;"><span>${esc(v.details)}</span><span>ARCHIVE 055</span></div>
       </div>`,
   },
 
