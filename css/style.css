@@ -523,7 +523,8 @@ main {
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
-.stage-scaler { transform-origin: top center; }
+.stage-scaler { position: relative; flex: 0 0 auto; overflow: hidden; }
+.stage-transform { position: absolute; inset: 0 auto auto 0; transform-origin: top left; }
 #poster-stage {
   position: relative;
   width: 750px;
