@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+  <defs>
+    <pattern id="waveA" width="24" height="18" patternUnits="userSpaceOnUse">
+      <path d="M-6 9C0-2 12-2 18 9S36 20 42 9" fill="none" stroke="#111318" stroke-width="1.8"/>
+    </pattern>
+    <pattern id="waveB" width="25" height="19" patternUnits="userSpaceOnUse" patternTransform="rotate(7)">
+      <path d="M-6 9.5C0-1.5 12.5-1.5 19 9.5S37.5 20.5 44 9.5" fill="none" stroke="#111318" stroke-width="1.2"/>
+    </pattern>
+    <clipPath id="field"><path d="M44 196H706V808C570 769 474 855 348 810C228 767 143 832 44 786Z"/></clipPath>
+  </defs>
+  <rect width="750" height="1000" fill="#f5f3ed"/>
+  <g clip-path="url(#field)">
+    <rect x="20" y="170" width="710" height="680" fill="url(#waveA)"/>
+    <rect x="-20" y="120" width="800" height="790" fill="url(#waveB)" opacity=".78" transform="rotate(-3 375 500)"/>
+    <ellipse cx="388" cy="502" rx="255" ry="340" fill="none" stroke="#1747d1" stroke-width="22" opacity=".9"/>
+  </g>
+  <rect x="44" y="46" width="662" height="112" fill="#1747d1"/>
+  <text x="67" y="134" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="82" font-weight="900" letter-spacing="-6">MOIRÉ</text>
+  <g fill="#1747d1" font-family="Courier New, monospace" font-size="11" letter-spacing="1.7">
+    <text x="45" y="860">FREQUENCY 24/25</text>
+    <text x="285" y="860">ANGLE +07° / -03°</text>
+    <text x="571" y="860">STUDY 051</text>
+  </g>
+  <path d="M44 886H706" stroke="#1747d1"/>
+  <text x="44" y="933" fill="#111318" font-family="Arial, sans-serif" font-size="29" font-weight="700">OPTICAL INTERFERENCE</text>
+  <text x="706" y="932" text-anchor="end" fill="#111318" font-family="Arial, sans-serif" font-size="13" letter-spacing="3">POSTER LAB / 2026</text>
+</svg>

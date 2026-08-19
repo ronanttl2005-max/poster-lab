@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6fdff"/><stop offset=".47" stop-color="#bcecff"/><stop offset="1" stop-color="#399fce"/></linearGradient>
+    <filter id="water" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".012 .035" numOctaves="3" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="34"/></filter>
+    <clipPath id="pool"><ellipse cx="374" cy="515" rx="285" ry="250"/></clipPath>
+  </defs>
+  <rect width="750" height="1000" fill="url(#sea)"/>
+  <g opacity=".45" fill="none" stroke="#fff" stroke-width="4" filter="url(#water)">
+    <path d="M-40 720C74 636 162 745 275 659S493 599 590 690S755 727 798 657"/>
+    <path d="M-35 770C82 692 170 786 290 715S512 655 606 739S752 775 797 716"/>
+    <path d="M-42 824C76 745 174 842 286 768S501 716 604 789S752 833 797 767"/>
+    <path d="M20 632C109 565 184 638 260 585S416 532 492 602S633 652 719 579"/>
+  </g>
+  <ellipse cx="374" cy="515" rx="296" ry="260" fill="#fff" fill-opacity=".18" stroke="#fff" stroke-opacity=".82" stroke-width="2"/>
+  <g clip-path="url(#pool)" filter="url(#water)" fill="#0c5791" font-family="Arial, sans-serif" font-weight="600">
+    <text x="88" y="350" font-size="64" letter-spacing="-2">WATER IS</text>
+    <text x="112" y="430" font-size="64" letter-spacing="-2">A SOFT</text>
+    <text x="92" y="510" font-size="64" letter-spacing="-2">MACHINE</text>
+    <text x="162" y="590" font-size="64" letter-spacing="-2">FOR</text>
+    <text x="112" y="670" font-size="64" letter-spacing="-2">LIGHT.</text>
+  </g>
+  <g stroke="#0b5791" stroke-opacity=".26">
+    <path d="M42 142H708M42 202H708M42 862H708"/>
+    <path d="M42 142V862M208 142V862M375 142V862M542 142V862M708 142V862"/>
+  </g>
+  <g fill="#0b5791" font-family="Courier New, monospace" font-size="10" letter-spacing="1.8">
+    <text x="42" y="75">HYDRO-CORE / TEXT REFRACTION</text>
+    <text x="708" y="75" text-anchor="end">STUDY 056</text>
+    <text x="42" y="118">01 / GRID</text><text x="208" y="118">02 / WAVE</text><text x="375" y="118">03 / LIGHT</text><text x="708" y="118" text-anchor="end">POSTER LAB</text>
+    <text x="42" y="914">THE GRID STAYS STILL. THE WATER CHANGES HOW WE READ IT.</text>
+  </g>
+</svg>
