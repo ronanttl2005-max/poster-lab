@@ -451,9 +451,12 @@ main {
 
 /* editor */
 .editor-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 26px; align-items: start; }
+.editor-layout > div,
+.editor-side { min-width: 0; }
 .editor-side { position: sticky; top: 96px; }
 .tpl-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .tpl-btn {
+  min-width: 0;
   min-height: 68px;
   padding: 10px 8px;
   color: var(--text-2);
