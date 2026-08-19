@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poster Lab · 海报灵感系统</title>
   <meta name="description" content="个人海报设计系统：灵感分类库 + 风格体系 + 可编辑海报模板" />
+  <meta name="theme-color" content="#f4f7fb" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="vendor/html-to-image.js"></script>
 </head>
@@ -21,10 +22,10 @@
 
   <main id="app"></main>
 
-  <div id="lightbox" class="lightbox hidden">
+  <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="lightbox-title">
     <div class="lightbox-backdrop"></div>
-    <div class="lightbox-panel">
-      <button class="lightbox-close" title="关闭">×</button>
+    <div class="lightbox-panel" tabindex="-1">
+      <button class="lightbox-close" type="button" title="关闭" aria-label="关闭预览">×</button>
       <div class="lightbox-img-wrap"><img alt="" /></div>
       <div class="lightbox-meta"></div>
     </div>
