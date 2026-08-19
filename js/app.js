@@ -94,9 +94,16 @@ function renderGallery(param) {
       renderGallery();
     })
   );
-  app.querySelectorAll(".card").forEach((c) =>
-    c.addEventListener("click", () => openLightbox(+c.dataset.idx))
-  );
+  app.querySelectorAll(".card").forEach((c) => {
+    const open = () => openLightbox(+c.dataset.idx);
+    c.addEventListener("click", open);
+    c.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+  });
 }
 
 // ---------------- lightbox ----------------
@@ -225,9 +232,16 @@ function renderStyles(param) {
       setTimeout(() => (b.textContent = "复制"), 1600);
     })
   );
-  app.querySelectorAll(".style-thumb").forEach((button) =>
-    button.addEventListener("click", () => openLightbox(+button.dataset.idx))
-  );
+  app.querySelectorAll(".style-thumb").forEach((button) => {
+    const open = () => openLightbox(+button.dataset.idx);
+    button.addEventListener("click", open);
+    button.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+  });
   if (param) {
     document.getElementById(`style-${safeId(param)}`)?.scrollIntoView({ behavior: "smooth" });
   }
