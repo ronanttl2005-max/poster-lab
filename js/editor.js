@@ -20,8 +20,21 @@ function getValues(tpl) {
   return stateByTemplate[tpl.id];
 }
 
-export function mountEditor(root, initialId) {
-  if (initialId && TEMPLATE_MAP[initialId]) currentId = initialId;
+function applyPreset(tpl, preset) {
+  stateByTemplate[tpl.id] = {
+    ...Object.fromEntries(tpl.fields.map((f) => [f.key, f.default])),
+    ...preset.values,
+  };
+}
+
+export function mountEditor(root, initialId, initialPresetId) {
+  if (initialId && TEMPLATE_MAP[initialId]) {
+    currentId = initialId;
+    if (initialPresetId) {
+      const preset = (TEMPLATE_MAP[initialId].presets || []).find((p) => p.id === initialPresetId);
+      if (preset) applyPreset(TEMPLATE_MAP[initialId], preset);
+    }
+  }
   root.innerHTML = `
     <div class="editor-layout">
       <div class="editor-side">
@@ -90,6 +103,11 @@ export function mountEditor(root, initialId) {
       (tpl.recommend
         ? `<p class="tpl-recommend">◎ 适用场景：${esc(tpl.recommend)}</p>`
         : "") +
+      ((tpl.presets || []).length
+        ? `<div class="preset-row"><span class="preset-row-label">一键复刻</span>${tpl.presets
+            .map((p, n) => `<button type="button" class="preset-chip" data-preset="${n}" title="按参考原图调好参数">${esc(p.name)}</button>`)
+            .join("")}</div>`
+        : "") +
       tpl.fields
         .map((f) => {
           const val = v[f.key] ?? f.default;
@@ -109,6 +127,14 @@ export function mountEditor(root, initialId) {
           return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="text" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
         })
         .join("");
+
+    form.querySelectorAll(".preset-chip").forEach((chip) =>
+      chip.addEventListener("click", () => {
+        applyPreset(tpl, tpl.presets[+chip.dataset.preset]);
+        renderForm();
+        renderPoster();
+      })
+    );
 
     form.querySelectorAll("[data-k]").forEach((el) => {
       const key = el.dataset.k;
@@ -151,13 +177,30 @@ export function mountEditor(root, initialId) {
       refsRoot.innerHTML = "";
       return;
     }
+    const presetByFile = Object.fromEntries((tpl.presets || []).map((p) => [p.ref, p]));
     refsRoot.innerHTML = `
-      <div class="ref-strip-label">参考原图（点击放大对照）</div>
+      <div class="ref-strip-label">参考原图（点击放大对照，带 ⚡ 的可一键复刻）</div>
       <div class="ref-strip-row">
-        ${refs.map((r, n) => `<button class="ref-thumb" type="button" data-n="${n}" title="${esc(r.title)}"><img src="${bridge.imgSrc(r)}" alt="${esc(r.title)}" loading="lazy" /></button>`).join("")}
+        ${refs
+          .map((r, n) => `
+          <span class="ref-thumb-wrap">
+            <button class="ref-thumb" type="button" data-n="${n}" title="${esc(r.title)}"><img src="${bridge.imgSrc(r)}" alt="${esc(r.title)}" loading="lazy" /></button>
+            ${presetByFile[r.file] ? `<button class="ref-replicate" type="button" data-n="${n}" title="按这张图调好所有参数">⚡ 复刻</button>` : ""}
+          </span>`)
+          .join("")}
       </div>`;
     refsRoot.querySelectorAll(".ref-thumb").forEach((b) =>
       b.addEventListener("click", () => bridge.openImage(refs[+b.dataset.n]))
+    );
+    refsRoot.querySelectorAll(".ref-replicate").forEach((b) =>
+      b.addEventListener("click", () => {
+        const preset = presetByFile[refs[+b.dataset.n].file];
+        if (!preset) return;
+        applyPreset(tpl, preset);
+        renderForm();
+        renderPoster();
+        root.querySelector(".editor-stage-wrap")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      })
     );
   }
 
@@ -185,7 +228,12 @@ export function mountEditor(root, initialId) {
     }
   });
 
-  if (window.PosterLab) window.PosterLab.templates = TEMPLATES.map(({ id, name }) => ({ id, name }));
+  if (window.PosterLab)
+    window.PosterLab.templates = TEMPLATES.map(({ id, name, presets }) => ({
+      id,
+      name,
+      presets: (presets || []).map(({ id: pid, name: pname, ref }) => ({ id: pid, name: pname, ref })),
+    }));
 
   renderPicker();
   renderForm();

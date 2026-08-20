@@ -45,7 +45,9 @@
 
 ## 任务二：新增/修改海报模板
 
-- 模板都在 `js/templates.js`，每个模板是 `{ id, name, styleId, desc, fields, render }`。
+- 模板都在 `js/templates.js`，每个模板是 `{ id, name, styleId, desc, recommend, presets, fields, render }`。
+- `recommend` 是适用平台/尺寸建议一句话；`presets` 是「一键复刻」预设数组 `{ id, name, ref, values }`——`ref` 指向灵感库某张图的 file，`values` 是把模板参数调到还原那张图的字段覆盖。**新模板入库时，至少给它的主参考图写一个 preset，并给对应灵感记录加 `refFor: ["template:<id>"]`，形成「参考图 ⇄ 模板」双向一键复刻。**
+- 工具类参考图同理：给灵感记录加 `refFor: ["tool:<id>"]` 后，工具页参考图会出现「⚡ 用这张」直接作为素材载入（techlines 例外，它用 `presets` 参数预设）。
 - `render(v)` 返回内联样式的 HTML 字符串，画布 750×1000，绝对定位布局。
 - 文字一律经过 `esc()`/`rich()` 处理；`rich` 支持 `*斜体*` 标记。
 - 新模板的 `styleId` 必须存在于 `data/styles.js`。

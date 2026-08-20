@@ -123,7 +123,8 @@ const routes = {
 
 function route() {
   const hash = location.hash.replace(/^#\//, "") || "gallery";
-  const [page, param] = hash.split("/");
+  const [page, ...rest] = hash.split("/");
+  const param = rest.join("/");
   const fn = routes[page] || renderGallery;
   document.querySelectorAll(".nav a").forEach((a) => {
     a.classList.toggle("active", a.dataset.route === page);
@@ -831,7 +832,12 @@ function showLightboxCurrent() {
     ${(i.refFor || []).map((target) => {
       const [kind, id] = target.split(":");
       if (kind === "template") {
-        const name = window.PosterLab?.templates?.find((t) => t.id === id)?.name || id;
+        const tplMeta = window.PosterLab?.templates?.find((t) => t.id === id);
+        const name = tplMeta?.name || id;
+        const preset = tplMeta?.presets?.find((p) => p.ref === i.file);
+        if (preset) {
+          return `<a class="ref-jump ref-jump-hot" href="#/editor/${safeId(id)}/${safeId(preset.id)}">⚡ 一键复刻这张 · ${escapeHtml(name)}</a>`;
+        }
         return `<a class="ref-jump" href="#/editor/${safeId(id)}">↗ 用这个版式出图 · ${escapeHtml(name)}</a>`;
       }
       if (kind === "tool") {
@@ -840,6 +846,12 @@ function showLightboxCurrent() {
       }
       return "";
     }).join("")}
+    ${(window.PosterLab?.templates || [])
+      .filter((t) => !(i.refFor || []).includes(`template:${t.id}`))
+      .flatMap((t) => (t.presets || []).filter((p) => p.ref === i.file).map((p) =>
+        `<a class="ref-jump ref-jump-hot" href="#/editor/${safeId(t.id)}/${safeId(p.id)}">⚡ 一键复刻这张 · ${escapeHtml(t.name)}</a>`
+      ))
+      .join("")}
   `;
   const multi = lightboxList.length > 1;
   lbPrev.classList.toggle("hidden", !multi);
@@ -983,7 +995,12 @@ function renderEditor(param) {
       <p>每套风格沉淀成一个可编辑模板：改文字、换颜色、传照片，实时预览，一键导出 PNG。旁边会显示这个模板对应的参考原图，随时对照。</p>
     </div>
     <div id="editor-root"></div>`;
-  return mountEditor(document.getElementById("editor-root"), param ? safeId(param) : undefined);
+  const [tplId, presetId] = (param || "").split("/");
+  return mountEditor(
+    document.getElementById("editor-root"),
+    tplId ? safeId(tplId) : undefined,
+    presetId ? safeId(presetId) : undefined
+  );
 }
 
 // ---------------- tools page ----------------
@@ -1106,7 +1123,11 @@ route();
 import("./templates.js")
   .then((m) => {
     if (!window.PosterLab.templates.length) {
-      window.PosterLab.templates = m.TEMPLATES.map(({ id, name }) => ({ id, name }));
+      window.PosterLab.templates = m.TEMPLATES.map(({ id, name, presets }) => ({
+        id,
+        name,
+        presets: (presets || []).map(({ id: pid, name: pname, ref }) => ({ id: pid, name: pname, ref })),
+      }));
     }
   })
   .catch(() => {});

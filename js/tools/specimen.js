@@ -10,6 +10,7 @@ import {
   subjectSilhouette,
   subjectHalftone,
   loadImageFile,
+  loadImageUrl,
   imageToCanvas,
   makeCanvas,
   ART_PALETTES,
@@ -66,7 +67,7 @@ export default {
     <rect x="90" y="48" width="16" height="2.4" fill="#999"/>
   </svg>`,
 
-  mount(container) {
+  mount(container, options = {}) {
     injectStyle("tool-specimen", `
       .sp-stage-wrap { display:flex; justify-content:center; align-items:flex-start; }
       .sp-canvas { max-width:100%; height:auto; background:#fff; box-shadow:0 2px 18px rgba(0,0,0,.1);
@@ -100,6 +101,7 @@ export default {
     let cards = [];         // {subject, cn, en, fill, frame, x, y, w, h, frameH, scale, rendered}
     let selected = -1;
     let segToken = 0;       // 防止过期分割结果覆盖新结果
+    let destroyed = false;
 
     // ---------- DOM 骨架 ----------
     const panel = document.createElement("div");
@@ -438,11 +440,26 @@ export default {
     };
     canvas.addEventListener("mousedown", onCanvasDown);
 
-    // ---------- 默认体验：演示图 ----------
+    // ---------- 默认体验：演示图（参考图加载失败时也有兜底）----------
     srcCanvas = demoSubjectsImage();
     resegment();
 
+    // 参考原图直接作为分割源图载入
+    if (options.sourceImageUrl) {
+      statusEl.textContent = "正在载入参考原图…";
+      loadImageUrl(options.sourceImageUrl)
+        .then((img) => {
+          if (destroyed) return;
+          srcCanvas = imageToCanvas(img, 1400);
+          resegment();
+        })
+        .catch(() => {
+          if (!destroyed) statusEl.textContent = "参考图载入失败，已回退到演示图。";
+        });
+    }
+
     return () => {
+      destroyed = true;
       segToken++;
       unbindDrag();
       canvas.removeEventListener("mousedown", onCanvasDown);

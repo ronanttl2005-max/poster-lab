@@ -868,6 +868,29 @@ main {
 .ref-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
 .ref-thumb:hover img { transform: scale(1.06); }
 
+/* 一键复刻预设 */
+.preset-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-bottom: 16px; padding: 10px 12px;
+  background: var(--accent-pale, #eef3ff); border-radius: 10px;
+}
+.preset-row-label { font-size: 11px; letter-spacing: 1px; color: var(--text-2); }
+.preset-chip {
+  border: 1px solid var(--accent, #2b5cff); background: #fff; color: var(--accent-strong, #1c3fd6);
+  font-size: 12px; padding: 5px 12px; border-radius: 999px; cursor: pointer; transition: all .15s;
+}
+.preset-chip:hover { background: var(--accent, #2b5cff); color: #fff; }
+.ref-thumb-wrap { position: relative; display: inline-block; flex: none; }
+.ref-replicate {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  font-size: 10.5px; padding: 3px 8px; border-radius: 999px; cursor: pointer;
+  background: rgba(20, 24, 40, .82); color: #ffd766; border: none;
+  backdrop-filter: blur(3px); transition: all .15s;
+}
+.ref-replicate:hover { background: var(--accent, #2b5cff); color: #fff; }
+.ref-jump-hot { background: #fff3d6; color: #9a6b00; border-color: #f0d998; }
+.ref-jump-hot:hover { border-color: #d9a400; background: #ffe9b3; }
+
 /* 双向关联跳转 & 模板推荐 */
 .ref-jump {
   display: inline-block; margin-top: 12px; margin-right: 10px;
@@ -899,4 +922,30 @@ main {
   .up-fields { grid-template-columns: 1fr; }
   .folder-new { grid-template-columns: 1fr 1fr; }
   .manage-bar { bottom: 12px; padding: 10px 12px; }
+}
+
+/* 参考原图「用这张」按钮 & 工具参数预设芯片 */
+.ref-use-btn {
+  position: absolute; top: 5px; right: 5px; z-index: 2;
+  padding: 3px 7px; border-radius: 6px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .92); color: var(--text-2);
+  font-size: 11px; line-height: 1.3; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .1); transition: all .15s;
+}
+.ref-use-btn:hover {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.tool-preset-chips {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+}
+.tool-preset-chips:empty { display: none; }
+.tool-preset-label { font-size: 11.5px; letter-spacing: 1.5px; color: var(--text-3); }
+.tool-preset-chip {
+  padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg-2); color: var(--text-2); font-size: 12px;
+  cursor: pointer; transition: all .15s;
+}
+.tool-preset-chip:hover { border-color: var(--accent); color: var(--accent-strong); }
+.tool-preset-chip.active {
+  background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong);
 }

@@ -10,6 +10,7 @@ export const INSPIRATIONS = [
     file: "01-pastel-oval-cards-flatlay.png",
     title: "淡彩椭圆卡片组（俯拍）",
     styleId: "playful-craft",
+    refFor: ["tool:specimen"],
     tags: ["喷绘光晕", "椭圆卡片", "手写体", "打字机贴纸"],
     note: "椭圆异形卡 + 喷绘彩虹光晕环 + 中央手写句；打字机字条像标签一样贴上去，故意露出裁切边。",
   },
@@ -58,6 +59,7 @@ export const INSPIRATIONS = [
   {
     file: "08-pastel-oval-cards-angled.png",
     title: "淡彩椭圆卡片组（斜拍）",
+    refFor: ["tool:specimen"],
     styleId: "playful-craft",
     tags: ["实物拍摄", "系列感"],
     note: "同一套卡片换机位拍摄——实物物料要拍多角度组图。",
@@ -142,6 +144,7 @@ export const INSPIRATIONS = [
   {
     file: "20-iced-latte-blue-collage.png",
     title: "冰拿铁蓝色拼贴",
+    refFor: ["tool:specimen"],
     styleId: "playful-craft",
     tags: ["单色调物件", "散排字母", "对话气泡"],
     note: "把实物照片整体调成单一蓝色调再拼贴；Iced 字母绕杯散排，顶部小图编号像胶片索引。",
@@ -156,6 +159,7 @@ export const INSPIRATIONS = [
   {
     file: "22-take-easy-lawn-photo.png",
     title: "Take easy 草坪剪影",
+    refFor: ["tool:typeflow"],
     styleId: "photo-text",
     tags: ["照片二创", "手绘批注", "前后对比"],
     note: "上图原照片抠白剪影，下图把剪影贴到白底加手绘思考泡泡——照片二创的轻量玩法。",
@@ -240,6 +244,7 @@ export const INSPIRATIONS = [
   {
     file: "34-neon-keychain-halftone.png",
     title: "荧光黄半调贴纸",
+    refFor: ["tool:typeflow"],
     styleId: "brutalist-type",
     tags: ["荧光色", "半调网点", "异形贴纸"],
     note: "黑底荧光黄描边贴纸，物件用半调网点处理；适合做周边贴纸的直接参考。",
@@ -275,6 +280,7 @@ export const INSPIRATIONS = [
   {
     file: "39-loneliness-bw-photo-blue-type.png",
     title: "孤独是人生的通病",
+    refFor: ["tool:typeflow"],
     styleId: "minimal-editorial",
     tags: ["黑白照片", "蓝色文字", "弧线排字", "两端对齐"],
     note: "黑白照片小图居中+米白大留白；蓝色文字沿弧线绕照片排；底部英文强制两端对齐成块。",

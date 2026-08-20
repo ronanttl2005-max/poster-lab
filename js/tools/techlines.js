@@ -549,6 +549,40 @@ const VIVID = (() => {
   return out.length ? out : ["#F9064B", "#049F73", "#2B2BE6", "#F89812"];
 })();
 
+// ---------- 参数预设（从默认值变化出的组合，供工具头部芯片一键切换）----------
+const PRESETS = [
+  {
+    id: "dense-blueprint",
+    name: "密集蓝图",
+    values: {
+      theme: "blue", density: 4, complexity: 5, strokeWidth: 0.8,
+      dashFreq: 0.45, annotDensity: 0.9, guides: true,
+      catGeo: true, catWave: true, catFlow: true, catMech: true, catSci: true,
+      overlayOn: true, overlayCount: 4,
+    },
+  },
+  {
+    id: "sparse-wave",
+    name: "稀疏波形",
+    values: {
+      theme: "white", density: 2, complexity: 2, strokeWidth: 1.2,
+      dashFreq: 0.15, annotDensity: 0.4, guides: false,
+      catGeo: false, catWave: true, catFlow: false, catMech: false, catSci: false,
+      overlayOn: true, overlayCount: 3,
+    },
+  },
+  {
+    id: "kraft-mech",
+    name: "牛皮机械",
+    values: {
+      theme: "kraft", density: 3, complexity: 4, strokeWidth: 1.4,
+      dashFreq: 0.3, annotDensity: 0.7, guides: true,
+      catGeo: false, catWave: false, catFlow: false, catMech: true, catSci: false,
+      overlayOn: false, overlayCount: 5,
+    },
+  },
+];
+
 // ============================================================
 // 模块导出
 // ============================================================
@@ -558,6 +592,7 @@ export default {
   nameEn: "Technical Line Generator",
   desc: "一键生成工程图纸感的技术线稿海报：几何、波形、流程、机械等图形随机组合，可叠加彩色图形主体，导出 SVG/PNG。",
   tags: ["生成式", "工程图纸", "SVG", "随机种子"],
+  presets: PRESETS,
   cover: `<svg viewBox="0 0 280 120" xmlns="http://www.w3.org/2000/svg">
     <rect width="280" height="120" fill="#fbfbf8"/>
     <g stroke="#d8d5cc" stroke-width="1"><path d="M70 0V120M140 0V120M210 0V120M0 40H280M0 80H280"/></g>
@@ -576,7 +611,7 @@ export default {
     <path d="M150 30 l38 22 -6 30 -34 8 -22 -26 z" fill="#0AF0A7" stroke="#fff" stroke-width="5" stroke-linejoin="round" opacity=".92"/>
   </svg>`,
 
-  mount(container) {
+  mount(container, options = {}) {
     injectStyle("techlines", `
       .tl-stage svg { max-height: 78vh; width: auto; }
       .tc-field.tc-info .tc-info { font-family: ${MONO}; }
@@ -589,6 +624,10 @@ export default {
       catGeo: true, catWave: true, catFlow: true, catMech: true, catSci: true,
       overlayOn: true, overlayCount: 5,
     };
+    if (options.presetId) {
+      const preset = PRESETS.find((p) => p.id === options.presetId);
+      if (preset) Object.assign(values, preset.values);
+    }
     const state = {
       seed: (Math.random() * 1e9) >>> 0,
       scatterSeed: (Math.random() * 1e9) >>> 0,

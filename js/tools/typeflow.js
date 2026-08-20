@@ -10,6 +10,7 @@ import {
   subjectHalftone,
   stickerOutline,
   loadImageFile,
+  loadImageUrl,
   imageToCanvas,
   makeCanvas,
   mulberry32,
@@ -109,7 +110,7 @@ export default {
     </g>
   </svg>`,
 
-  mount(container) {
+  mount(container, options = {}) {
     // ---------- 状态 ----------
     const values = {
       threshold: 60,
@@ -527,9 +528,20 @@ export default {
       (key) => onChange(key)
     );
 
-    // ---------- 默认体验：演示图立即出图 ----------
+    // ---------- 默认体验：演示图立即出图（参考图加载失败时也有兜底）----------
     state.srcCanvas = demoSubjectsImage();
     runAll({ resegment: true });
+
+    // 参考原图直接作为主体图载入
+    if (options.sourceImageUrl) {
+      loadImageUrl(options.sourceImageUrl)
+        .then((img) => {
+          if (state.destroyed) return;
+          state.srcCanvas = imageToCanvas(img, 1400);
+          runAll({ resegment: true });
+        })
+        .catch(() => {});
+    }
 
     return () => {
       state.destroyed = true;

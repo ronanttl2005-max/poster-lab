@@ -26,6 +26,26 @@ export const TEMPLATES = [
     styleId: "minimal-editorial",
     desc: "ABCD 式大留白访谈排版：描边大数字 + 双色文字层级",
     recommend: "小红书 3:4 / 公众号内页 · 导出 1500×2000；文字多时保持小字号，靠留白撑住",
+    presets: [
+      {
+        id: "q2-pink-blue-full", name: "复刻 · Q2 访谈页", ref: "17-interview-q2-editorial.png",
+        values: {
+          num: "Q2",
+          question: "很多人对『从事亚文化领域的平面设计师与艺术实践』这一定位感到好奇。你如何理解这一身份？它是否意味着你的工作更关注于某些特定的群体或文化圈层？",
+          answer: "在德国的许多大城市，都有自发的青年文化中心，年轻人可以在这里独立组织、策划活动并进行实验。这些机构在政治和项目规划上是属于自我管理的，通常依靠志愿服务维持，从这个意义上说，它们是一种“替代性基础设施”。\n\n我们这代人中，许多活跃于此类环境的人后来创办了音乐活动团体、厂牌或俱乐部，将这些自组织原则带入了更正式的结构中。\n\n在这些环境下，角色往往是模糊的，我不只是设计师，也是项目的一份子——策划项目、撰写资金申请、塑造视觉形象。",
+          meta: "INTERVIEW · 2026",
+        },
+      },
+      {
+        id: "q1-short-answer", name: "复刻 · Q1 访谈页", ref: "25-interview-q1-editorial.png",
+        values: {
+          num: "Q1",
+          question: "能和我们简单介绍下你的背景吗？是什么契机让你决定投身于设计行业？",
+          answer: "我很早就对音乐杂志产生了痴迷，无论是其中的内容还是设计，我甚至对杂志进行了大量的收集。16 岁左右，我开始筹备音乐会和俱乐部之夜。因为这些经历，我开始尝试海报设计，并最终引导我攻读了设计学位。",
+          meta: "INTERVIEW · 2026",
+        },
+      },
+    ],
     fields: [
       { key: "num", label: "编号（如 Q1）", type: "text", default: "Q2" },
       {
@@ -58,6 +78,21 @@ export const TEMPLATES = [
     styleId: "swiss-grid",
     desc: "IBM 式几何图形 + 模块信息区：条纹阵列与几何眼睛",
     recommend: "活动主视觉 / A4 印刷（3:4 接近 A 系纸张）· 导出 1500×2000 印刷可再放大",
+    presets: [
+      {
+        id: "ibm-techxchange-green-eye", name: "复刻 · IBM 绿纹蓝眼", ref: "06-ibm-techxchange-swiss-grid.png",
+        values: {
+          brand: "IBM",
+          title: "TechXchange",
+          year: "2025",
+          dateLine: "October 6 – 9, 2025\nOrlando, Florida",
+          tagline: "The learning event for developers\nand technologists on a mission",
+          stripe: "#42BE65",
+          icon: "#0F62FE",
+          bg: "#F2F2F0",
+        },
+      },
+    ],
     fields: [
       { key: "brand", label: "品牌名", type: "text", default: "POSTER LAB" },
       { key: "title", label: "标题（粗体）", type: "text", default: "TechXchange" },
@@ -104,6 +139,30 @@ export const TEMPLATES = [
     styleId: "pop-clash",
     desc: "Hiiibrand 式纯色大底 + 瓶盖物件 + 双语清单",
     recommend: "小红书 3:4 / 朋友圈海报 · 高饱和底色在手机小图下依然醒目",
+    presets: [
+      {
+        id: "hiiibrand-blue-deadlines", name: "复刻 · 蓝底瓶盖清单", ref: "07-hiiibrand-caps-blue-orange.png",
+        values: {
+          bg: "#55C3F0",
+          capColor: "#C9702F",
+          titleCn: "Hiiibrand 国际设计奖 · 征集中",
+          titleEn: "HIIIBRAND AWARDS OPEN CALL",
+          lines: "超级早鸟 2025.8.31|Super-Early-Bird Entry Deadline\n早鸟提交 2025.9.30|Early-Bird Entry Deadline\n常规提交 2025.10.31|Regular Entry Deadline",
+          ink: "#FFFFFF",
+        },
+      },
+      {
+        id: "hiiibrand-orange-jury", name: "复刻 · 橙底评审页", ref: "07-hiiibrand-caps-blue-orange.png",
+        values: {
+          bg: "#F8A303",
+          capColor: "#6C86D6",
+          titleCn: "黛比 · 米尔曼",
+          titleEn: "DEBBIE MILLMAN",
+          lines: "评审委员会主席|Jury President\n设计为何重要|Why Design Matters\nAIGA 终身成就奖|AIGA Lifetime Achievement",
+          ink: "#231A0E",
+        },
+      },
+    ],
     fields: [
       { key: "bg", label: "底色", type: "color", default: "#37C0F0" },
       { key: "capColor", label: "瓶盖色", type: "color", default: "#C9702F" },
@@ -145,6 +204,44 @@ export const TEMPLATES = [
     styleId: "brutalist-type",
     desc: "Public Records 式：图形区 + 跑马灯地址条 + 等宽字信息表",
     recommend: "演出/活动宣传 · Instagram 4:5 裁切安全；信息表适合排期类内容",
+    presets: [
+      {
+        id: "pr-sat59-green-sparse", name: "复刻 · 绿窗留白版", ref: "15-public-records-sat59-green.png",
+        values: {
+          accent: "#2ADB4E",
+          paper: "#F0EBDF",
+          date: "SAT 5.9",
+          rows: "SOUND ROOM|Moxie\n|Louise Chen\nTHE ATRIUM|Make A Dance",
+          ticker: "PUBLIC RECORDS / 233 BUTLER ST, BROOKLYN, NY 11217 / CLUB PROGRAM, MAY 2026 / ",
+          footL: "PUBLIC RECORDS\n233 BUTLER ST. NY",
+          footR: "DOORS 11:00",
+        },
+      },
+      {
+        id: "pr-fri529-yellow-dense", name: "复刻 · 黄窗灰底版", ref: "13-public-records-fri529-yellow.png",
+        values: {
+          accent: "#F2F600",
+          paper: "#C7C7C2",
+          date: "FRI 5.29",
+          rows: "SOUND ROOM|Rrose\n|Decoder\nTHE ATRIUM|Claudio PRC\n|Julia Govor\nUPSTAIRS|Millie McKee",
+          ticker: "PUBLIC RECORDS / 233 BUTLER ST, BROOKLYN, NY 11217 / CLUB PROGRAM, MAY 2026 / ",
+          footL: "PUBLIC RECORDS\n233 BUTLER ST. NY",
+          footR: "DOORS 11:00",
+        },
+      },
+      {
+        id: "pr-sat52-orange-yellow", name: "复刻 · 橙窗黄底版", ref: "26-public-records-sat52-orange.png",
+        values: {
+          accent: "#E8501F",
+          paper: "#F5F500",
+          date: "SAT 5.2",
+          rows: "SOUND ROOM|Matisa\nTHE ATRIUM|Lovefingers\n|Gee Dee\nUPSTAIRS|Zotos",
+          ticker: "PUBLIC RECORDS / 233 BUTLER ST, BROOKLYN, NY 11217 / CLUB PROGRAM, MAY 2026 / ",
+          footL: "PUBLIC RECORDS\n233 BUTLER ST. NY",
+          footR: "DOORS 11:00",
+        },
+      },
+    ],
     fields: [
       { key: "image", label: "顶部图像（可选，建议黑白）", type: "image", default: "" },
       { key: "accent", label: "色块窗颜色", type: "color", default: "#FFE600" },
@@ -205,6 +302,24 @@ export const TEMPLATES = [
     styleId: "thermal-glow",
     desc: "Thermal Vision 式：热成像模糊主体 + 色谱图例 + 三栏小字",
     recommend: "音乐/视觉类封面 · 3:4 或裁成 1:1 都成立；深底在暗色模式 App 里更融合",
+    presets: [
+      {
+        id: "thermal-vision-blue", name: "复刻 · 蓝底热感人像", ref: "48-thermal-vision-portrait.png",
+        values: { blur: "32" },
+      },
+      {
+        id: "space-race-red", name: "复刻 · 红底太空竞赛", ref: "24-space-race-red-thermal.png",
+        values: {
+          title: "Space Race",
+          captions: "MISSION TO|THE RED PLANET\nWHO WILL|GET THERE FIRST\nSPACEX × NASA|2026",
+          bg: "#E8401C",
+          bodyColor: "#6C5BE0",
+          coreColor: "#1A1038",
+          hotColor: "#FFD3E0",
+          blur: "14",
+        },
+      },
+    ],
     fields: [
       { key: "title", label: "标题（衬线）", type: "text", default: "Thermal Vision" },
       {
@@ -251,6 +366,12 @@ export const TEMPLATES = [
     styleId: "photo-text",
     desc: "We removed the heart 式：失焦照片 + 白色衬线逐行推进",
     recommend: "小红书 3:4 图文封面 · 照片选暗部多的，白字才有对比",
+    presets: [
+      {
+        id: "removed-heart-blue-blur", name: "复刻 · 失焦衬线独白", ref: "47-we-removed-the-heart-serif.png",
+        values: { bgBlur: "14", size: "72" },
+      },
+    ],
     fields: [
       { key: "image", label: "背景照片（建议模糊/情绪化）", type: "image", default: "" },
       {
@@ -295,6 +416,36 @@ export const TEMPLATES = [
     styleId: "minimal-editorial",
     desc: "以文字为主角的纵向编辑网格：眉题、标题、正文和页码均可编辑",
     recommend: "长文分享 / 公众号次条封面 · 3:4 竖版；正文别超过三段",
+    presets: [
+      {
+        id: "interview-q2-pink-blue", name: "复刻 · 访谈Q2", ref: "17-interview-q2-editorial.png",
+        values: {
+          eyebrow: "INTERVIEW / Q2",
+          title: "Q2",
+          dek: "很多人对‘从事亚文化领域的平面设计师与艺术实践’这一定位感到好奇。你如何理解这一身份？",
+          body: "在德国的许多大城市，都有自发的青年文化中心，年轻人可以在这里独立组织、策划活动并进行实验。这些机构在政治和项目规划上是属于自我管理的，通常依靠志愿服务维持，从这个意义上说，它们是一种“替代性基础设施”。",
+          meta: "POSTER LAB · INTERVIEW 2026",
+          size: "110",
+          bg: "#FFFFFF",
+          ink: "#3A3FD8",
+          accent: "#F5A8CF",
+        },
+      },
+      {
+        id: "adventures-dark-serif", name: "复刻 · 暗色探险", ref: "30-adventures-first-dark-halftone.png",
+        values: {
+          eyebrow: "OCTOBER 11TH / 22 PM MONDAY",
+          title: "THE\n*ADVENTURES*\nFIRST",
+          dek: "explanations take\nsuch a dreadful time",
+          body: "Persons attempting to find a motive in this narrative will be prosecuted; persons attempting to find a moral in it will be banished.\n— Mark Twain, The Adventures of Huckleberry Finn",
+          meta: "(C) «ALICE IN WONDERLAND» / LEWIS CARROLL",
+          size: "78",
+          bg: "#0B0B0D",
+          ink: "#F4F4F2",
+          accent: "#D8D8D4",
+        },
+      },
+    ],
     fields: [
       { key: "eyebrow", label: "眉题 / 编号", type: "text", default: "FIELD NOTE / 06" },
       { key: "title", label: "主标题", type: "textarea", default: "Make space\nfor a clear idea." },
@@ -358,6 +509,17 @@ export const TEMPLATES = [
     styleId: "cmyk-halftone",
     desc: "四色分层、套印偏移和印刷参数全部可编辑的标题模板",
     recommend: "实验字体/自我介绍页 · 3:4；偏移量别超过 8px，否则小图上糊成一团",
+    presets: [
+      {
+        id: "print-process-053", name: "复刻 · PRINT套印", ref: "53-cmyk-overprint-type.svg",
+        values: {
+          kicker: "OVERPRINT TEST · UNCOATED PAPER · PLATE 04",
+          title: "PRINT",
+          subtitle: "PROCESS / IMPERFECTION\nColor separation as a visual language.",
+          offset: "7",
+        },
+      },
+    ],
     fields: [
       { key: "kicker", label: "顶部小标题", type: "text", default: "PRINT / PROCESS / 03" },
       { key: "title", label: "主标题", type: "text", default: "OVERPRINT" },
@@ -398,6 +560,29 @@ export const TEMPLATES = [
     styleId: "moire-pattern",
     desc: "大标题与干涉波纹叠加：颜色、频率和说明文字可调整",
     recommend: "视觉实验类分享 · 3:4 / 1:1 均可；波纹密度在手机上看比电脑上更密，导出前缩小检查",
+    presets: [
+      {
+        id: "moire-black-wave", name: "复刻 · 黑波蓝字", ref: "51-moire-black-wave.svg",
+        values: {
+          title: "MOIRÉ",
+          caption: "FREQUENCY 24/25 · ANGLE +07° / -03°\nOPTICAL INTERFERENCE · STUDY 051",
+          wave: "#111318",
+          ink: "#1747D1",
+          bg: "#F5F3ED",
+        },
+      },
+      {
+        id: "moire-color-orbit", name: "复刻 · 彩色轨道", ref: "52-moire-color-orbit.svg",
+        values: {
+          title: "ORBIT",
+          caption: "COLOR INTERFERENCE / 052\nAn optical field that moves while standing still.",
+          wave: "#1CC5EA",
+          ink: "#104BD5",
+          bg: "#F7F9FB",
+          angle: "15",
+        },
+      },
+    ],
     fields: [
       { key: "title", label: "主标题", type: "text", default: "MOIRÉ FIELD" },
       { key: "caption", label: "说明文字", type: "textarea", default: "Two grids. One moving image.\nOptical study no. 04." },
@@ -430,6 +615,26 @@ export const TEMPLATES = [
     styleId: "cyanotype",
     desc: "负片图形占位 + 档案信息排版，适合植物、建筑和收藏记录",
     recommend: "收藏记录 / 系列内页 · 3:4 竖版；同系列多张时固定纸张色和蓝色，只换主体",
+    presets: [
+      {
+        id: "botanical-specimen-049", name: "复刻 · 植物档案", ref: "49-cyanotype-botanical-archive.svg",
+        values: {
+          title: "SPECIMEN / 049",
+          subject: "BOTANICAL",
+          details: "SUN EXPOSURE · 18 MIN\nCOLLECTED 2026.08.19\n39°54'26.7\"N 116°23'32.1\"E\nCYANOTYPE ARCHIVE",
+          negative: "#EDF2E8",
+        },
+      },
+      {
+        id: "type-study-cyan", name: "复刻 · 文字曝光", ref: "50-cyanotype-type-study.svg",
+        values: {
+          title: "SUN PRINT / TYPE STUDY 02",
+          subject: "CYANOTYPE",
+          details: "PAPER: COTTON 300G · UV 5 · WASH 08:40\nPRUSSIAN BLUE / NEGATIVE SPACE",
+          paper: "#F5F0E5",
+        },
+      },
+    ],
     fields: [
       { key: "title", label: "档案标题", type: "text", default: "SUN PRINT / SPECIMEN" },
       { key: "subject", label: "主体词", type: "text", default: "LEAF STUDY" },
@@ -459,6 +664,29 @@ export const TEMPLATES = [
     styleId: "hydro-core",
     desc: "透明水滴、柔和焦散和短句文字，可编辑标题与信息层级",
     recommend: "短句/心情类内容 · 小红书 3:4；短句两行以内效果最好",
+    presets: [
+      {
+        id: "glass-drop-hydro", name: "复刻 · 玻璃水滴", ref: "55-hydro-glass-drop.svg",
+        values: {
+          quote: "HYDRO",
+          author: "AQUA MATERIAL / STUDY 055",
+          meta: "CLEAR FORM · LIQUID LIGHT · BLUE SILENCE",
+          bubble: "#41B8E3",
+          size: "96",
+        },
+      },
+      {
+        id: "caustic-soft-machine", name: "复刻 · 水面短句", ref: "56-hydro-caustic-grid.svg",
+        values: {
+          quote: "WATER IS\nA SOFT\nMACHINE\nFOR LIGHT.",
+          meta: "THE GRID STAYS STILL. THE WATER CHANGES HOW WE READ IT.",
+          bg: "#BCECFF",
+          ink: "#0C5791",
+          bubble: "#399FCE",
+          size: "64",
+        },
+      },
+    ],
     fields: [
       { key: "quote", label: "主句（支持 *斜体*）", type: "textarea", default: "Water makes\nlight visible." },
       { key: "author", label: "署名 / 说明", type: "text", default: "HYDRO-CORE / TEXT REFRACTION" },
@@ -486,6 +714,28 @@ export const TEMPLATES = [
     styleId: "photo-text",
     desc: "小红书式白底照片拼图：克制留白 + 上下/双联构图 + 可调滤镜，传两张照片即可成组",
     recommend: "小红书竖版 3:4 · 导出 1500×2000 可直接发布；同组多张请保持同一滤镜",
+    presets: [
+      {
+        id: "banners-diptych", name: "复刻 · 红幡×紫幡", ref: "57-red-banners-purple-canopy-diptych.png",
+        values: { layout: "side-by-side", margin: "110", gap: "8", saturate: "112", contrast: "104", caption: "" },
+      },
+      {
+        id: "street-repair", name: "复刻 · 修车铺", ref: "58-street-repair-tires-diptych.png",
+        values: { layout: "stack-sm-lg", margin: "96", gap: "48", warmth: "6", saturate: "104" },
+      },
+      {
+        id: "treework-mirror", name: "复刻 · 呼应双图", ref: "59-treework-mirror-diptych.png",
+        values: { layout: "stack-equal", margin: "104", gap: "52", saturate: "106", contrast: "102" },
+      },
+      {
+        id: "bw-street", name: "复刻 · 黑白街拍", ref: "60-bw-train-street-diptych.png",
+        values: { layout: "stack-equal", margin: "96", gap: "48", preset: "bw", contrast: "112" },
+      },
+      {
+        id: "balloon-muted", name: "复刻 · 低饱和灰调", ref: "61-balloon-orange-wall-diptych.png",
+        values: { layout: "stack-sm-lg", margin: "100", gap: "52", preset: "muted", brightness: "103" },
+      },
+    ],
     fields: [
       { key: "layout", label: "构图", type: "select", default: "stack-sm-lg", options: [
         { value: "stack-sm-lg", label: "上下双图（上窄下宽）" },
