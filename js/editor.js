@@ -40,6 +40,7 @@ export function mountEditor(root) {
           </div>
         </div>
         <div class="editor-hint">750 × 1000 画布 · 导出为 2 倍分辨率 PNG（1500 × 2000）</div>
+        <div class="ref-strip" id="editor-refs"></div>
       </div>
     </div>`;
 
@@ -75,6 +76,7 @@ export function mountEditor(root) {
         renderPicker();
         renderForm();
         renderPoster();
+        renderRefs();
       })
     );
   }
@@ -135,6 +137,26 @@ export function mountEditor(root) {
     stage.innerHTML = tpl.render(getValues(tpl));
   }
 
+  function renderRefs() {
+    const refsRoot = root.querySelector("#editor-refs");
+    const bridge = window.PosterLab;
+    if (!refsRoot || !bridge) return;
+    const tpl = TEMPLATE_MAP[currentId];
+    const refs = bridge.getRefsFor(`template:${tpl.id}`, { styleId: tpl.styleId, limit: 8 });
+    if (!refs.length) {
+      refsRoot.innerHTML = "";
+      return;
+    }
+    refsRoot.innerHTML = `
+      <div class="ref-strip-label">参考原图（点击放大对照）</div>
+      <div class="ref-strip-row">
+        ${refs.map((r, n) => `<button class="ref-thumb" type="button" data-n="${n}" title="${esc(r.title)}"><img src="${bridge.imgSrc(r)}" alt="${esc(r.title)}" loading="lazy" /></button>`).join("")}
+      </div>`;
+    refsRoot.querySelectorAll(".ref-thumb").forEach((b) =>
+      b.addEventListener("click", () => bridge.openImage(refs[+b.dataset.n]))
+    );
+  }
+
   root.querySelector("#btn-reset").addEventListener("click", () => {
     delete stateByTemplate[currentId];
     renderForm();
@@ -159,9 +181,12 @@ export function mountEditor(root) {
     }
   });
 
+  if (window.PosterLab) window.PosterLab.templates = TEMPLATES.map(({ id, name }) => ({ id, name }));
+
   renderPicker();
   renderForm();
   renderPoster();
+  renderRefs();
   fitStage();
 
   return () => window.removeEventListener("resize", fitStage);

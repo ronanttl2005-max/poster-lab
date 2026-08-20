@@ -7,7 +7,7 @@ import { TEMPLATES } from "../js/templates.js";
 
 const serverDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultDataFile = path.join(serverDirectory, "data.json");
-const collections = ["styles", "inspirations", "templates"];
+const collections = ["styles", "inspirations", "templates", "folders"];
 
 // Functions in template definitions are intentionally omitted from API data.
 // The browser still imports js/templates.js for rendering, while the API exposes
@@ -17,6 +17,7 @@ const seedData = {
   styles: STYLES,
   inspirations: INSPIRATIONS,
   templates: templateMetadata,
+  folders: [],
 };
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -92,6 +93,15 @@ export class DataStore {
     this.data[collection][index] = updated;
     await this.save();
     return clone(updated);
+  }
+
+  async remove(collection, id) {
+    await this.load();
+    const index = this.data[collection].findIndex((entry) => String(entry.id) === String(id) || String(entry.file) === String(id));
+    if (index < 0) return null;
+    const [removed] = this.data[collection].splice(index, 1);
+    await this.save();
+    return clone(removed);
   }
 
   async save() {

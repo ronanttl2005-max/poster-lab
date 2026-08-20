@@ -68,17 +68,19 @@ function authorizeMutation(request, adminToken) {
   return null;
 }
 
-async function readBody(request) {
+async function readBody(request, maxBytes = 1024 * 1024) {
   const chunks = [];
   let bytes = 0;
+  // Drain the whole stream even when over the limit: aborting mid-body makes
+  // clients see a reset instead of the 413 response (and breaks under Bun).
   for await (const chunk of request) {
     bytes += chunk.length;
-    if (bytes > 1024 * 1024) {
-      const error = new Error("Request body is too large (maximum 1 MiB)");
-      error.statusCode = 413;
-      throw error;
-    }
-    chunks.push(chunk);
+    if (bytes <= maxBytes) chunks.push(chunk);
+  }
+  if (bytes > maxBytes) {
+    const error = new Error(`Request body is too large (maximum ${Math.round(maxBytes / (1024 * 1024))} MiB)`);
+    error.statusCode = 413;
+    throw error;
   }
   if (!chunks.length) return {};
   try {
@@ -161,17 +163,119 @@ async function serveStatic(response, requestPath, headOnly = false) {
   }
 }
 
+const folderKinds = ["brand", "theme", "custom"];
+
+async function validateFolderPayload(store, payload, { partial = false, selfId = null } = {}) {
+  if (!partial || Object.hasOwn(payload, "name")) {
+    if (typeof payload.name !== "string" || !payload.name.trim()) {
+      return "Folder 'name' must be a non-empty string";
+    }
+  }
+  if (!partial || Object.hasOwn(payload, "kind")) {
+    if (!folderKinds.includes(payload.kind)) {
+      return `Folder 'kind' must be one of: ${folderKinds.join(", ")}`;
+    }
+  }
+  if (Object.hasOwn(payload, "parentId") && payload.parentId !== null && payload.parentId !== undefined && payload.parentId !== "") {
+    const parent = (await store.list("folders")).find((entry) => String(entry.id) === String(payload.parentId));
+    if (!parent) return "Folder 'parentId' must reference an existing folder";
+    if (parent.parentId) return "Folders can only be nested one level deep: the parent must be a top-level folder";
+    if (selfId !== null && String(parent.id) === String(selfId)) return "A folder cannot be its own parent";
+  }
+  return null;
+}
+
+const uploadMimeExtensions = {
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+};
+
+function sanitizeUploadName(name, extension) {
+  const base = path.basename(String(name || ""), path.extname(String(name || "")));
+  const cleaned = base.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) || "upload";
+  return `${cleaned}-${Date.now().toString(36)}${extension}`;
+}
+
+async function saveUpload(uploadsDir, payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { error: { status: 400, message: "Request body must be a JSON object" } };
+  }
+  const dataUrl = typeof payload.dataUrl === "string" ? payload.dataUrl : "";
+  const match = dataUrl.match(/^data:([a-z0-9/+.-]+);base64,(.*)$/is);
+  if (!match) {
+    return { error: { status: 400, message: "'dataUrl' must be a base64 data URL" } };
+  }
+  const mime = match[1].toLowerCase();
+  const extension = uploadMimeExtensions[mime];
+  if (!extension) {
+    return { error: { status: 400, message: `Unsupported image type '${mime}'. Allowed: ${Object.keys(uploadMimeExtensions).join(", ")}` } };
+  }
+  const bytes = Buffer.from(match[2], "base64");
+  if (!bytes.length) {
+    return { error: { status: 400, message: "'dataUrl' contains no image data" } };
+  }
+
+  await fs.mkdir(uploadsDir, { recursive: true });
+  let fileName = sanitizeUploadName(payload.name, extension);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await fs.writeFile(path.join(uploadsDir, fileName), bytes, { flag: "wx" });
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST" || attempt >= 20) throw error;
+      fileName = `${fileName.slice(0, -extension.length)}-${crypto.randomBytes(3).toString("hex")}${extension}`;
+    }
+  }
+  return { fileName };
+}
+
+async function serveUpload(response, uploadsDir, requestPath, headOnly = false) {
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(requestPath);
+  } catch {
+    sendError(response, 400, "Invalid path encoding");
+    return;
+  }
+  const fileName = decodedPath.slice("/uploads/".length);
+  if (!fileName || fileName.includes("/") || fileName.includes("\\") || fileName.startsWith(".")) {
+    sendError(response, 404, "File not found");
+    return;
+  }
+  const filePath = path.resolve(uploadsDir, fileName);
+  if (filePath !== path.join(path.resolve(uploadsDir), fileName)) {
+    sendError(response, 404, "File not found");
+    return;
+  }
+  try {
+    const stat = await fs.stat(filePath);
+    if (!stat.isFile()) throw Object.assign(new Error("Not a file"), { code: "ENOENT" });
+    response.writeHead(200, {
+      "Content-Type": mimeTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream",
+      "Cache-Control": "no-cache",
+      "Content-Length": stat.size,
+    });
+    response.end(headOnly ? undefined : await fs.readFile(filePath));
+  } catch (error) {
+    if (error.code === "ENOENT") sendError(response, 404, "File not found");
+    else sendError(response, 500, "Unable to read file");
+  }
+}
+
 export function createServer({
   dataFile,
   adminToken = process.env.POSTER_LAB_ADMIN_TOKEN || "",
   corsOrigin = process.env.CORS_ORIGIN || "",
 } = {}) {
   const store = new DataStore(dataFile);
+  const uploadsDir = process.env.POSTER_LAB_UPLOADS_DIR || path.join(path.dirname(store.filePath), "uploads");
   return http.createServer(async (request, response) => {
     if (corsOrigin) {
       response.setHeader("Access-Control-Allow-Origin", corsOrigin);
       response.setHeader("Vary", "Origin");
-      response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS");
+      response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
       response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
     if (request.method === "OPTIONS") {
@@ -195,12 +299,22 @@ export function createServer({
       }
 
       if (url.pathname === "/api/bootstrap" && request.method === "GET") {
-        const { inspirations, styles, templates } = await store.snapshot();
-        sendJson(response, 200, { inspirations, styles, templates });
+        const { inspirations, styles, templates, folders } = await store.snapshot();
+        sendJson(response, 200, { inspirations, styles, templates, folders });
         return;
       }
 
-      const apiMatch = url.pathname.match(/^\/api\/(styles|inspirations|templates)(?:\/([^/]+))?$/);
+      if (url.pathname === "/api/uploads" && request.method === "POST") {
+        const authorizationError = authorizeMutation(request, adminToken);
+        if (authorizationError) return sendError(response, authorizationError.status, authorizationError.message);
+        const payload = await readBody(request, 8 * 1024 * 1024);
+        const result = await saveUpload(uploadsDir, payload);
+        if (result.error) return sendError(response, result.error.status, result.error.message);
+        sendJson(response, 201, { data: { src: `/uploads/${result.fileName}` } });
+        return;
+      }
+
+      const apiMatch = url.pathname.match(/^\/api\/(styles|inspirations|templates|folders)(?:\/([^/]+))?$/);
       if (apiMatch) {
         const [, collection, encodedId] = apiMatch;
         if (!collections.includes(collection)) {
@@ -223,6 +337,10 @@ export function createServer({
           if (authorizationError) return sendError(response, authorizationError.status, authorizationError.message);
           const payload = await readBody(request);
           if (!payload || typeof payload !== "object" || Array.isArray(payload)) return sendError(response, 400, "Request body must be a JSON object");
+          if (collection === "folders") {
+            const validationError = await validateFolderPayload(store, payload);
+            if (validationError) return sendError(response, 400, validationError);
+          }
           const item = await store.add(collection, payload);
           sendJson(response, 201, { data: item });
           return;
@@ -232,9 +350,47 @@ export function createServer({
           if (authorizationError) return sendError(response, authorizationError.status, authorizationError.message);
           const payload = await readBody(request);
           if (!payload || typeof payload !== "object" || Array.isArray(payload)) return sendError(response, 400, "Request body must be a JSON object");
+          if (collection === "folders") {
+            const validationError = await validateFolderPayload(store, payload, { partial: true, selfId: id });
+            if (validationError) return sendError(response, 400, validationError);
+          }
           const item = await store.update(collection, id, payload);
           if (!item) return sendError(response, 404, `${collection} item not found`);
           sendJson(response, 200, { data: item });
+          return;
+        }
+        if (request.method === "DELETE" && id && (collection === "inspirations" || collection === "folders")) {
+          const authorizationError = authorizeMutation(request, adminToken);
+          if (authorizationError) return sendError(response, authorizationError.status, authorizationError.message);
+
+          if (collection === "inspirations") {
+            const removed = await store.remove("inspirations", id);
+            if (!removed) return sendError(response, 404, "inspirations item not found");
+            if (typeof removed.src === "string" && removed.src.startsWith("/uploads/")) {
+              const fileName = removed.src.slice("/uploads/".length);
+              if (fileName && !fileName.includes("/") && !fileName.includes("\\") && !fileName.startsWith(".")) {
+                await fs.rm(path.join(uploadsDir, fileName), { force: true }).catch(() => {});
+              }
+            }
+            sendJson(response, 200, { data: removed });
+            return;
+          }
+
+          const folder = await store.find("folders", id);
+          if (!folder) return sendError(response, 404, "folders item not found");
+          const children = (await store.list("folders")).filter((entry) => entry.parentId && String(entry.parentId) === String(folder.id));
+          const removedIds = [folder.id, ...children.map((child) => child.id)].map(String);
+          for (const folderId of removedIds) {
+            await store.remove("folders", folderId);
+          }
+          for (const inspiration of await store.list("inspirations")) {
+            if (!Array.isArray(inspiration.collectionIds)) continue;
+            const remaining = inspiration.collectionIds.filter((value) => !removedIds.includes(String(value)));
+            if (remaining.length !== inspiration.collectionIds.length) {
+              await store.update("inspirations", inspiration.id ?? inspiration.file, { collectionIds: remaining });
+            }
+          }
+          sendJson(response, 200, { data: folder });
           return;
         }
         sendError(response, 405, "Method not allowed");
@@ -247,6 +403,10 @@ export function createServer({
       }
       if (request.method !== "GET" && request.method !== "HEAD") {
         sendError(response, 405, "Method not allowed");
+        return;
+      }
+      if (url.pathname.startsWith("/uploads/")) {
+        await serveUpload(response, uploadsDir, url.pathname, request.method === "HEAD");
         return;
       }
       await serveStatic(response, url.pathname, request.method === "HEAD");

@@ -8,7 +8,16 @@
 
 ## 任务一：新灵感入库（最高频）
 
-用户会把新的灵感截图丢进 `inbox/` 文件夹，或直接在对话中发图，然后说"入库"之类的话。
+用户有三种入库方式：把截图丢进 `inbox/` 文件夹、在对话中直接发图、**或在网站上点「上传灵感」直接上传（会进「待分类」）**。
+
+当用户说"把网站上待分类的灵感入库/归档"时：
+
+1. `GET /api/inspirations?styleId=inbox` 拉取待分类记录（线上地址 https://poster-lab.onrender.com，或本地 http://127.0.0.1:4173）。
+2. 逐张下载 `src` 指向的图片查看分析，按下面的流程判断风格、写标题/标签/学习点。
+3. `PATCH /api/inspirations/:id` 更新 `styleId/title/tags/note` 并把 `status` 置空（需要 Bearer Token，问用户要或读部署配置）。
+4. 建议同时把图片下载存入 `assets/inspirations/`（编号顺延）、在 `data/inspirations.js` 追加记录并提交，这样种子数据与线上一致，重新部署也不丢。
+
+传统 `inbox/` 文件夹流程：
 
 流程：
 
@@ -56,7 +65,9 @@
 ## 任务五：维护后端 API
 
 - API 入口在 `server/index.js`，数据层在 `server/store.js`。
-- 保持 `GET /api/health`、`GET /api/bootstrap` 和三个集合接口兼容。
+- 保持 `GET /api/health`、`GET /api/bootstrap` 和四个集合接口（styles/inspirations/templates/folders）兼容。
+- `folders` 是收藏夹（两级树：`parentId` 为空是一级；`kind` ∈ brand/theme/custom）。灵感记录的扩展字段：`subStyle`（风格二级分类）、`seriesId`（系列合并）、`collectionIds`（所属收藏夹）、`refFor`（挂载为模板/工具参考图，如 `template:xxx`、`tool:specimen`）、`src`+`status:"inbox"`（网页上传的待分类图）。
+- `POST /api/uploads` 接收 base64 图片存入数据目录的 `uploads/`；`DELETE` 支持 inspirations 和 folders。
 - 不得移除写接口的 Bearer Token/本机限制，也不得放宽静态文件白名单。
 - `server/data.json` 是运行时覆盖数据，不应提交到 Git；种子数据仍以 `data/*.js` 和 `js/templates.js` 为准。
 - 云端运行需要 `HOST=0.0.0.0`；长期保存写入内容需要为 `POSTER_LAB_DATA_FILE` 配置持久磁盘。

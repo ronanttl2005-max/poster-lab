@@ -50,6 +50,7 @@ test("bootstrap returns plain arrays in a single request", async () => {
   assert.ok(Array.isArray(bootstrap.body.styles));
   assert.ok(Array.isArray(bootstrap.body.inspirations));
   assert.ok(Array.isArray(bootstrap.body.templates));
+  assert.ok(Array.isArray(bootstrap.body.folders));
   assert.ok(bootstrap.body.styles.length >= 8);
 });
 
@@ -118,6 +119,217 @@ test("private project files cannot be served", async () => {
 
   const packageFile = await request("/package.json");
   assert.equal(packageFile.response.status, 404);
+});
+
+const authorizedJson = { "content-type": "application/json", authorization: "Bearer test-secret" };
+const tinyPngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+test("folders can be created, validated, and updated", async () => {
+  const unauthorized = await request("/api/folders", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "Blocked", kind: "custom" }),
+  });
+  assert.equal(unauthorized.response.status, 401);
+
+  const missingName = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "  ", kind: "custom" }),
+  });
+  assert.equal(missingName.response.status, 400);
+
+  const badKind = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "Bad", kind: "nope" }),
+  });
+  assert.equal(badKind.response.status, 400);
+
+  const badParent = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "Orphan", kind: "custom", parentId: "no-such-folder" }),
+  });
+  assert.equal(badParent.response.status, 400);
+
+  const parent = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "品牌 A", kind: "brand", parentId: null, note: "", createdAt: "2026-08-20" }),
+  });
+  assert.equal(parent.response.status, 201);
+  assert.match(parent.body.data.id, /^folder-/);
+
+  const child = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ id: "folder-child", name: "系列 1", kind: "theme", parentId: parent.body.data.id }),
+  });
+  assert.equal(child.response.status, 201);
+
+  const grandchild = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "太深了", kind: "custom", parentId: "folder-child" }),
+  });
+  assert.equal(grandchild.response.status, 400);
+
+  const rename = await request(`/api/folders/${parent.body.data.id}`, {
+    method: "PATCH",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "品牌 A（改名）" }),
+  });
+  assert.equal(rename.response.status, 200);
+  assert.equal(rename.body.data.name, "品牌 A（改名）");
+
+  const list = await request("/api/folders");
+  assert.equal(list.response.status, 200);
+  assert.ok(list.body.data.some((item) => item.id === "folder-child"));
+
+  const single = await request("/api/folders/folder-child");
+  assert.equal(single.response.status, 200);
+  assert.equal(single.body.data.parentId, parent.body.data.id);
+});
+
+test("deleting a folder cascades to children and inspiration collectionIds", async () => {
+  const parent = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ id: "folder-cascade", name: "级联", kind: "custom", parentId: null }),
+  });
+  assert.equal(parent.response.status, 201);
+  const child = await request("/api/folders", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ id: "folder-cascade-child", name: "子级", kind: "custom", parentId: "folder-cascade" }),
+  });
+  assert.equal(child.response.status, 201);
+
+  const inspiration = await request("/api/inspirations", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({
+      id: "cascade-inspiration",
+      title: "在收藏夹中",
+      collectionIds: ["folder-cascade", "folder-cascade-child", "folder-unrelated"],
+    }),
+  });
+  assert.equal(inspiration.response.status, 201);
+
+  const unauthorized = await request("/api/folders/folder-cascade", { method: "DELETE" });
+  assert.equal(unauthorized.response.status, 401);
+
+  const removal = await request("/api/folders/folder-cascade", {
+    method: "DELETE",
+    headers: authorizedJson,
+  });
+  assert.equal(removal.response.status, 200);
+  assert.equal(removal.body.data.id, "folder-cascade");
+
+  const goneParent = await request("/api/folders/folder-cascade");
+  assert.equal(goneParent.response.status, 404);
+  const goneChild = await request("/api/folders/folder-cascade-child");
+  assert.equal(goneChild.response.status, 404);
+
+  const cleaned = await request("/api/inspirations/cascade-inspiration");
+  assert.equal(cleaned.response.status, 200);
+  assert.deepEqual(cleaned.body.data.collectionIds, ["folder-unrelated"]);
+});
+
+test("uploads accept whitelisted images and serve them back", async () => {
+  const unauthorized = await request("/api/uploads", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "x.png", dataUrl: `data:image/png;base64,${tinyPngBase64}` }),
+  });
+  assert.equal(unauthorized.response.status, 401);
+
+  const upload = await request("/api/uploads", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "参考 图!!.png", dataUrl: `data:image/png;base64,${tinyPngBase64}` }),
+  });
+  assert.equal(upload.response.status, 201);
+  assert.match(upload.body.data.src, /^\/uploads\/[A-Za-z0-9_-]*-[a-z0-9]+\.png$/);
+
+  const served = await fetch(`${baseUrl}${upload.body.data.src}`);
+  assert.equal(served.status, 200);
+  assert.equal(served.headers.get("content-type"), "image/png");
+  assert.ok((await served.arrayBuffer()).byteLength > 0);
+
+  const badMime = await request("/api/uploads", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "evil.svg", dataUrl: "data:image/svg+xml;base64,PHN2Zy8+" }),
+  });
+  assert.equal(badMime.response.status, 400);
+
+  const notDataUrl = await request("/api/uploads", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "x.png", dataUrl: "https://example.com/x.png" }),
+  });
+  assert.equal(notDataUrl.response.status, 400);
+
+  const oversized = await request("/api/uploads", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "big.png", dataUrl: `data:image/png;base64,${"A".repeat(9 * 1024 * 1024)}` }),
+  });
+  assert.equal(oversized.response.status, 413);
+
+  const dotFile = await request("/uploads/.hidden");
+  assert.equal(dotFile.response.status, 404);
+  const traversal = await request("/uploads/..%2Fdata.json");
+  assert.equal(traversal.response.status, 404);
+  const missing = await request("/uploads/nope.png");
+  assert.equal(missing.response.status, 404);
+});
+
+test("inspirations can be deleted along with their uploaded file", async () => {
+  const upload = await request("/api/uploads", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ name: "to-delete.png", dataUrl: `data:image/png;base64,${tinyPngBase64}` }),
+  });
+  assert.equal(upload.response.status, 201);
+  const src = upload.body.data.src;
+
+  const create = await request("/api/inspirations", {
+    method: "POST",
+    headers: authorizedJson,
+    body: JSON.stringify({ id: "delete-me", title: "待删除", src }),
+  });
+  assert.equal(create.response.status, 201);
+
+  const unauthorized = await request("/api/inspirations/delete-me", { method: "DELETE" });
+  assert.equal(unauthorized.response.status, 401);
+
+  const removal = await request("/api/inspirations/delete-me", {
+    method: "DELETE",
+    headers: authorizedJson,
+  });
+  assert.equal(removal.response.status, 200);
+  assert.equal(removal.body.data.id, "delete-me");
+
+  const gone = await request("/api/inspirations/delete-me");
+  assert.equal(gone.response.status, 404);
+
+  const goneFile = await fetch(`${baseUrl}${src}`);
+  assert.equal(goneFile.status, 404);
+
+  const missing = await request("/api/inspirations/never-existed", {
+    method: "DELETE",
+    headers: authorizedJson,
+  });
+  assert.equal(missing.response.status, 404);
+
+  const stylesDelete = await request("/api/styles/minimal-editorial", {
+    method: "DELETE",
+    headers: authorizedJson,
+  });
+  assert.equal(stylesDelete.response.status, 405);
 });
 
 test("CORS is same-origin by default", async () => {
