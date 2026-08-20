@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+  <defs>
+    <filter id="paper" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="8" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0" result="g"/>
+      <feBlend in="SourceGraphic" in2="g" mode="multiply"/>
+    </filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c5da4"/>
+      <stop offset=".55" stop-color="#063f7c"/>
+      <stop offset="1" stop-color="#032b5b"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="1000" fill="#f3efe3"/>
+  <path d="M42 45C148 28 253 45 365 37C484 28 596 41 711 58L704 936C581 953 465 944 352 956C236 968 133 951 50 938Z" fill="url(#blue)" opacity=".97" filter="url(#paper)"/>
+  <g fill="#edf2e8" stroke="#edf2e8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M362 865C355 739 363 625 337 497C315 391 287 290 245 174" fill="none" stroke-width="9" opacity=".88"/>
+    <path d="M334 508C264 469 208 411 169 344M320 441C379 394 425 332 451 260M297 365C244 337 206 300 174 257M279 305C323 270 352 230 371 184M257 233C221 215 193 193 167 166" fill="none" stroke-width="5" opacity=".78"/>
+    <g opacity=".92">
+      <ellipse cx="182" cy="352" rx="31" ry="75" transform="rotate(-48 182 352)"/>
+      <ellipse cx="231" cy="407" rx="28" ry="67" transform="rotate(-51 231 407)"/>
+      <ellipse cx="274" cy="467" rx="26" ry="63" transform="rotate(-55 274 467)"/>
+      <ellipse cx="428" cy="292" rx="27" ry="70" transform="rotate(38 428 292)"/>
+      <ellipse cx="386" cy="355" rx="26" ry="62" transform="rotate(42 386 355)"/>
+      <ellipse cx="185" cy="268" rx="22" ry="55" transform="rotate(-55 185 268)"/>
+      <ellipse cx="353" cy="221" rx="22" ry="57" transform="rotate(38 353 221)"/>
+      <ellipse cx="177" cy="176" rx="17" ry="43" transform="rotate(-58 177 176)"/>
+      <ellipse cx="235" cy="177" rx="18" ry="48" transform="rotate(-17 235 177)"/>
+    </g>
+    <g fill="none" stroke-width="3" opacity=".72">
+      <path d="M439 822C466 711 492 613 540 518C571 457 607 408 652 362"/>
+      <path d="M513 573C566 564 614 543 652 510M537 518C505 480 488 440 480 398M564 473C607 459 638 435 668 406M591 430C570 399 563 367 563 335"/>
+    </g>
+    <g opacity=".74">
+      <ellipse cx="627" cy="519" rx="20" ry="48" transform="rotate(64 627 519)"/>
+      <ellipse cx="493" cy="414" rx="17" ry="44" transform="rotate(-26 493 414)"/>
+      <ellipse cx="651" cy="425" rx="16" ry="40" transform="rotate(58 651 425)"/>
+      <ellipse cx="572" cy="346" rx="14" ry="37" transform="rotate(-13 572 346)"/>
+    </g>
+  </g>
+  <g fill="#f6f1e6" font-family="Courier New, monospace">
+    <text x="70" y="88" font-size="12" letter-spacing="2.5">SPECIMEN / 049</text>
+    <text x="681" y="118" font-size="10" letter-spacing="2" transform="rotate(90 681 118)">SUN EXPOSURE · 18 MIN · 2026.08.19</text>
+    <text x="70" y="895" font-size="11" letter-spacing="1.8">39°54'26.7"N 116°23'32.1"E</text>
+  </g>
+  <text x="70" y="846" fill="#f6f1e6" font-family="Georgia, serif" font-size="52" letter-spacing="-1">BOTANICAL</text>
+  <text x="73" y="870" fill="#b9d8e7" font-family="Arial, sans-serif" font-size="13" letter-spacing="6">CYANOTYPE ARCHIVE</text>
+</svg>

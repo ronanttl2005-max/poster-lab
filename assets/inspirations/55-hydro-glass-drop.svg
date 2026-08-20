@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1000" viewBox="0 0 750 1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8fdff"/><stop offset=".52" stop-color="#d8f3ff"/><stop offset="1" stop-color="#83d5f1"/></linearGradient>
+    <radialGradient id="drop" cx="33%" cy="25%"><stop stop-color="#fff" stop-opacity=".78"/><stop offset=".32" stop-color="#d9f7ff" stop-opacity=".42"/><stop offset=".72" stop-color="#41b8e3" stop-opacity=".22"/><stop offset="1" stop-color="#0878b5" stop-opacity=".5"/></radialGradient>
+    <radialGradient id="bubble" cx="32%" cy="26%"><stop stop-color="#fff" stop-opacity=".9"/><stop offset=".35" stop-color="#fff" stop-opacity=".12"/><stop offset=".78" stop-color="#42b8dc" stop-opacity=".08"/><stop offset="1" stop-color="#1478b5" stop-opacity=".45"/></radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceAlpha" stdDeviation="18"/><feOffset dy="18"/><feComponentTransfer><feFuncA type="linear" slope=".18"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="dropClip"><path d="M381 183C449 294 565 389 565 540C565 689 481 785 368 785C254 785 181 690 185 560C190 411 306 304 381 183Z"/></clipPath>
+    <filter id="caustic"><feTurbulence baseFrequency=".015 .05" numOctaves="2" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="22"/></filter>
+  </defs>
+  <rect width="750" height="1000" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <path d="M381 183C449 294 565 389 565 540C565 689 481 785 368 785C254 785 181 690 185 560C190 411 306 304 381 183Z" fill="url(#drop)" stroke="#fff" stroke-opacity=".75" stroke-width="4"/>
+    <path d="M257 481C272 365 349 292 382 242" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity=".55"/>
+    <path d="M493 610C471 697 421 737 352 744" fill="none" stroke="#0b77ad" stroke-width="8" stroke-linecap="round" opacity=".18"/>
+  </g>
+  <text x="375" y="540" text-anchor="middle" fill="#0b3d91" font-family="Arial, sans-serif" font-size="96" font-weight="300" letter-spacing="-6">HYDRO</text>
+  <g clip-path="url(#dropClip)" filter="url(#caustic)">
+    <text x="375" y="548" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="112" font-weight="600" letter-spacing="-8" opacity=".62">HYDRO</text>
+  </g>
+  <g fill="url(#bubble)" stroke="#fff" stroke-opacity=".72">
+    <circle cx="133" cy="288" r="48"/><circle cx="625" cy="324" r="72"/><circle cx="614" cy="733" r="34"/><circle cx="124" cy="716" r="24"/>
+  </g>
+  <g fill="#0b5f98" font-family="Courier New, monospace" font-size="10" letter-spacing="2">
+    <text x="42" y="64">AQUA MATERIAL / STUDY 055</text>
+    <text x="708" y="64" text-anchor="end">REFRACTION INDEX 1.333</text>
+    <text x="42" y="924">CLEAR FORM · LIQUID LIGHT · BLUE SILENCE</text>
+    <text x="708" y="924" text-anchor="end">08.19 / 2026</text>
+  </g>
+  <path d="M42 90H708M42 893H708" stroke="#0b5f98" opacity=".55"/>
+</svg>

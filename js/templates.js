@@ -281,6 +281,191 @@ export const TEMPLATES = [
       </div>`;
     },
   },
+
+  // ------------------------------------------------------------------
+  {
+    id: "type-grid",
+    name: "编辑网格文字页",
+    styleId: "minimal-editorial",
+    desc: "以文字为主角的纵向编辑网格：眉题、标题、正文和页码均可编辑",
+    fields: [
+      { key: "eyebrow", label: "眉题 / 编号", type: "text", default: "FIELD NOTE / 06" },
+      { key: "title", label: "主标题", type: "textarea", default: "Make space\nfor a clear idea." },
+      { key: "dek", label: "副标题", type: "textarea", default: "A small study on attention, rhythm and useful silence." },
+      { key: "body", label: "正文（支持换行）", type: "textarea", default: "Good typography does not decorate information.\nIt gives information a pace, a place and a reason to stay.", },
+      { key: "meta", label: "底部元信息", type: "text", default: "POSTER LAB / EDITION 01 / SHANGHAI" },
+      { key: "align", label: "标题对齐", type: "select", default: "left", options: [{ value: "left", label: "左对齐" }, { value: "center", label: "居中" }, { value: "right", label: "右对齐" }] },
+      { key: "size", label: "标题字号", type: "range", default: "74", min: 42, max: 110 },
+      { key: "bg", label: "背景色", type: "color", default: "#F7F8FA" },
+      { key: "ink", label: "文字色", type: "color", default: "#111318" },
+      { key: "accent", label: "强调色", type: "color", default: "#1747D1" },
+    ],
+    render: (v) => `
+      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};font-family:Helvetica,Arial,sans-serif;padding:52px 58px;">
+        <div style="display:grid;grid-template-columns:32px 1fr 1fr;gap:28px;height:100%;">
+          <div style="border-right:1px solid ${v.accent};font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:2px;color:${v.accent};writing-mode:vertical-rl;transform:rotate(180deg);padding-right:12px;">${esc(v.eyebrow)}</div>
+          <div style="display:flex;flex-direction:column;justify-content:space-between;min-width:0;">
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:${v.size}px;line-height:.98;letter-spacing:-2px;text-align:${v.align};white-space:pre-wrap;">${rich(v.title)}</div>
+            <div style="font-size:19px;line-height:1.5;max-width:290px;color:${v.accent};white-space:pre-wrap;">${rich(v.dek)}</div>
+            <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:1.4px;color:${v.accent};">${esc(v.meta)}</div>
+          </div>
+          <div style="border-left:1px solid rgba(23,71,209,.32);padding:18px 0 0 24px;display:flex;align-items:center;">
+            <div style="font-size:16px;line-height:1.95;max-width:218px;white-space:pre-wrap;">${rich(v.body)}</div>
+          </div>
+        </div>
+      </div>`,
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "vertical-type-poster",
+    name: "竖排文字海报",
+    styleId: "brutalist-type",
+    desc: "中文竖排 + 英文横排 + 侧边信息条，适合展览与活动标题",
+    fields: [
+      { key: "title", label: "中文主标题", type: "textarea", default: "把\n空白\n留给\n想法" },
+      { key: "english", label: "英文副标题", type: "text", default: "A TYPOGRAPHIC STUDY" },
+      { key: "date", label: "日期 / 地点", type: "textarea", default: "08.19—09.06\nPOSTER LAB / SHANGHAI" },
+      { key: "note", label: "侧边说明", type: "textarea", default: "TYPE / SPACE / RHYTHM\nOPEN STUDIO 06\nFREE ENTRY" },
+      { key: "writing", label: "标题方向", type: "select", default: "vertical-rl", options: [{ value: "vertical-rl", label: "从右到左" }, { value: "vertical-lr", label: "从左到右" }] },
+      { key: "bg", label: "底色", type: "color", default: "#F4F1E8" },
+      { key: "ink", label: "主文字色", type: "color", default: "#111318" },
+      { key: "accent", label: "强调色", type: "color", default: "#E53B35" },
+    ],
+    render: (v) => `
+      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};padding:48px 54px;font-family:Helvetica,Arial,sans-serif;">
+        <div style="position:absolute;top:48px;left:54px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.accent};">POSTER LAB / TYPE 02</div>
+        <div style="position:absolute;top:48px;right:54px;writing-mode:${v.writing};height:450px;font-family:Georgia,'Songti SC',serif;font-size:92px;line-height:1.03;letter-spacing:8px;white-space:pre-wrap;">${esc(v.title)}</div>
+        <div style="position:absolute;left:70px;top:345px;width:300px;color:${v.accent};font-family:Arial Black,Arial,sans-serif;font-size:31px;line-height:1.1;letter-spacing:-1px;">${esc(v.english)}</div>
+        <div style="position:absolute;left:70px;bottom:92px;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.8;white-space:pre-wrap;">${esc(v.date)}</div>
+        <div style="position:absolute;right:54px;bottom:62px;width:240px;border-top:1px solid ${v.ink};padding-top:12px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;">${esc(v.note)}</div>
+        <div style="position:absolute;left:54px;bottom:48px;right:54px;height:3px;background:${v.accent};"></div>
+      </div>`,
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "cmyk-overprint-type",
+    name: "CMYK 错位大字",
+    styleId: "cmyk-halftone",
+    desc: "四色分层、套印偏移和印刷参数全部可编辑的标题模板",
+    fields: [
+      { key: "kicker", label: "顶部小标题", type: "text", default: "PRINT / PROCESS / 03" },
+      { key: "title", label: "主标题", type: "text", default: "OVERPRINT" },
+      { key: "subtitle", label: "副标题", type: "textarea", default: "The beautiful error\nof four colors becoming one." },
+      { key: "spec", label: "底部印刷参数", type: "text", default: "C 75°  ·  M 15°  ·  Y 0°  ·  K 45°" },
+      { key: "offset", label: "套印偏移", type: "range", default: "9", min: 1, max: 20 },
+      { key: "cyan", label: "C 青色", type: "color", default: "#00AEEF" },
+      { key: "magenta", label: "M 品红", type: "color", default: "#EC008C" },
+      { key: "yellow", label: "Y 黄色", type: "color", default: "#FFF200" },
+      { key: "black", label: "K 黑色", type: "color", default: "#111318" },
+      { key: "paper", label: "纸张色", type: "color", default: "#F5F1E8" },
+    ],
+    render: (v) => {
+      const o = Number(v.offset) || 8;
+      return `
+      <div style="position:absolute;inset:0;background:${v.paper};color:${v.black};padding:54px 56px;font-family:Arial,Helvetica,sans-serif;overflow:hidden;">
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:2px;">${esc(v.kicker)}</div>
+        <div style="position:absolute;top:205px;left:49px;font-family:Arial Black,Arial,sans-serif;font-size:96px;font-weight:900;letter-spacing:-7px;white-space:nowrap;line-height:1;mix-blend-mode:multiply;">
+          <span style="position:absolute;left:${-o}px;top:${-o}px;color:${v.cyan};">${esc(v.title)}</span>
+          <span style="position:absolute;left:${o}px;top:${-o / 2}px;color:${v.magenta};">${esc(v.title)}</span>
+          <span style="position:absolute;left:${-o / 2}px;top:${o}px;color:${v.yellow};">${esc(v.title)}</span>
+          <span style="position:relative;color:${v.black};">${esc(v.title)}</span>
+        </div>
+        <div style="position:absolute;top:420px;left:60px;right:60px;height:2px;background:${v.black};"></div>
+        <div style="position:absolute;top:470px;left:60px;max-width:420px;font-family:Georgia,serif;font-size:39px;line-height:1.08;white-space:pre-wrap;">${rich(v.subtitle)}</div>
+        <div style="position:absolute;bottom:58px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:end;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.5px;">
+          <span>${esc(v.spec)}</span><span>CMYK / 03</span>
+        </div>
+        <div style="position:absolute;top:740px;right:60px;display:flex;gap:5px;">${[v.cyan, v.magenta, v.yellow, v.black].map((c) => `<i style="display:block;width:32px;height:32px;background:${c};"></i>`).join("")}</div>
+      </div>`;
+    },
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "moire-title-field",
+    name: "莫尔标题场",
+    styleId: "moire-pattern",
+    desc: "大标题与干涉波纹叠加：颜色、频率和说明文字可调整",
+    fields: [
+      { key: "title", label: "主标题", type: "text", default: "MOIRÉ FIELD" },
+      { key: "caption", label: "说明文字", type: "textarea", default: "Two grids. One moving image.\nOptical study no. 04." },
+      { key: "wave", label: "波纹色", type: "color", default: "#1747D1" },
+      { key: "ink", label: "文字色", type: "color", default: "#111318" },
+      { key: "bg", label: "背景色", type: "color", default: "#F7F8FA" },
+      { key: "angle", label: "第二层旋转角度", type: "range", default: "7", min: -18, max: 18 },
+    ],
+    render: (v) => {
+      const parsedAngle = Number(v.angle);
+      const angle = Number.isFinite(parsedAngle) ? parsedAngle : 7;
+      const lines = Array.from({ length: 27 }, (_, i) => `<span style="display:block;height:17px;border-top:1px solid ${v.wave};transform:skewY(${Math.sin(i / 2) * 7}deg);"></span>`).join("");
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};padding:50px 52px;font-family:Helvetica,Arial,sans-serif;overflow:hidden;">
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.wave};">OPTICAL INTERFERENCE / 04</div>
+        <div style="position:absolute;left:18px;right:18px;top:185px;height:490px;opacity:.9;transform:rotate(-4deg);">${lines}</div>
+        <div style="position:absolute;left:18px;right:18px;top:185px;height:490px;opacity:.58;transform:rotate(${angle}deg) scale(1.03);mix-blend-mode:multiply;">${lines}</div>
+        <div style="position:absolute;top:335px;left:50px;right:50px;background:${v.bg};padding:18px 12px 24px;border-top:2px solid ${v.wave};border-bottom:2px solid ${v.wave};">
+          <div style="font-family:Arial Black,Arial,sans-serif;font-size:64px;line-height:.98;letter-spacing:-4px;color:${v.wave};">${esc(v.title)}</div>
+        </div>
+        <div style="position:absolute;bottom:62px;left:52px;right:52px;display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;color:${v.ink};"><span>${esc(v.caption)}</span><span>08 / 19 / 2026</span></div>
+      </div>`;
+    },
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "cyanotype-archive",
+    name: "蓝晒档案页",
+    styleId: "cyanotype",
+    desc: "负片图形占位 + 档案信息排版，适合植物、建筑和收藏记录",
+    fields: [
+      { key: "title", label: "档案标题", type: "text", default: "SUN PRINT / SPECIMEN" },
+      { key: "subject", label: "主体词", type: "text", default: "LEAF STUDY" },
+      { key: "details", label: "档案信息（每行一条）", type: "textarea", default: "COLLECTED 08.19.2026\nEXPOSURE 18 MINUTES\nPAPER COTTON 300G\nLOCATION 39°54'N 116°23'E" },
+      { key: "blue", label: "蓝晒色", type: "color", default: "#06477F" },
+      { key: "paper", label: "纸张色", type: "color", default: "#F3EFE3" },
+      { key: "negative", label: "负片色", type: "color", default: "#E7F0EC" },
+    ],
+    render: (v) => `
+      <div style="position:absolute;inset:0;background:${v.paper};padding:48px 54px;color:${v.blue};font-family:Helvetica,Arial,sans-serif;">
+        <div style="position:absolute;top:54px;left:54px;right:54px;bottom:150px;background:${v.blue};overflow:hidden;">
+          <div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 40%,rgba(255,255,255,.09),transparent 48%);"></div>
+          <div style="position:absolute;left:50%;top:49%;width:470px;height:600px;transform:translate(-50%,-50%) rotate(-12deg);border-left:7px solid ${v.negative};border-radius:55% 45% 48% 52%;opacity:.92;"></div>
+          <div style="position:absolute;left:47%;top:47%;width:220px;height:430px;transform:translate(-50%,-50%) rotate(-12deg);border-left:5px solid ${v.negative};border-radius:50%;opacity:.85;"></div>
+          <div style="position:absolute;left:40%;top:40%;width:285px;height:300px;transform:rotate(-38deg);border-top:4px solid ${v.negative};border-radius:50%;box-shadow:90px 76px 0 -30px ${v.negative},140px 145px 0 -52px ${v.negative},205px 190px 0 -58px ${v.negative};opacity:.85;"></div>
+          <div style="position:absolute;left:42px;top:42px;color:${v.negative};font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;">${esc(v.title)}</div>
+          <div style="position:absolute;left:42px;bottom:40px;color:${v.negative};font-family:Georgia,serif;font-size:54px;line-height:.95;">${esc(v.subject)}</div>
+        </div>
+        <div style="position:absolute;left:54px;right:54px;bottom:34px;display:flex;justify-content:space-between;align-items:flex-end;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.65;white-space:pre-wrap;"><span>${esc(v.details)}</span><span>ARCHIVE 055</span></div>
+      </div>`,
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "hydro-quote",
+    name: "水核短句海报",
+    styleId: "hydro-core",
+    desc: "透明水滴、柔和焦散和短句文字，可编辑标题与信息层级",
+    fields: [
+      { key: "quote", label: "主句（支持 *斜体*）", type: "textarea", default: "Water makes\nlight visible." },
+      { key: "author", label: "署名 / 说明", type: "text", default: "HYDRO-CORE / TEXT REFRACTION" },
+      { key: "meta", label: "底部元数据", type: "text", default: "CLEAR FORM · LIQUID LIGHT · 2026" },
+      { key: "bg", label: "背景色", type: "color", default: "#D8F3FF" },
+      { key: "ink", label: "文字色", type: "color", default: "#0B3D91" },
+      { key: "bubble", label: "气泡色", type: "color", default: "#77D7F5" },
+      { key: "size", label: "短句字号", type: "range", default: "82", min: 46, max: 120 },
+    ],
+    render: (v) => `
+      <div style="position:absolute;inset:0;background:linear-gradient(145deg,#f8fdff,${v.bg});color:${v.ink};overflow:hidden;font-family:Helvetica,Arial,sans-serif;">
+        <div style="position:absolute;width:570px;height:570px;left:90px;top:205px;border-radius:54% 46% 52% 48%;background:radial-gradient(circle at 31% 20%,rgba(255,255,255,.96),rgba(255,255,255,.18) 25%,${v.bubble}55 58%,${v.ink}33 100%);box-shadow:inset 18px 10px 35px rgba(255,255,255,.6),inset -22px -30px 44px rgba(11,61,145,.15),0 32px 50px rgba(26,117,169,.18);transform:rotate(-11deg);"></div>
+        <div style="position:absolute;width:116px;height:116px;left:82px;top:143px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,${v.bubble}66 62%,${v.ink}33);box-shadow:0 14px 26px rgba(26,117,169,.16);"></div>
+        <div style="position:absolute;width:70px;height:70px;right:92px;bottom:228px;border-radius:50%;background:radial-gradient(circle at 30% 22%,#fff,${v.bubble}66 62%,${v.ink}33);"></div>
+        <div style="position:absolute;top:58px;left:58px;right:58px;display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.7px;"><span>${esc(v.author)}</span><span>HYDRO / 06</span></div>
+        <div style="position:absolute;top:365px;left:66px;right:66px;font-family:Georgia,serif;font-size:${v.size}px;line-height:1.03;letter-spacing:-3px;white-space:pre-wrap;text-shadow:0 2px 18px rgba(255,255,255,.55);">${rich(v.quote)}</div>
+        <div style="position:absolute;bottom:52px;left:58px;right:58px;border-top:1px solid ${v.ink}66;padding-top:13px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:1.6px;">${esc(v.meta)}</div>
+      </div>`,
+  },
 ];
 
 export const TEMPLATE_MAP = Object.fromEntries(TEMPLATES.map((t) => [t.id, t]));
