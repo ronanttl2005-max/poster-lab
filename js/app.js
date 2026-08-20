@@ -25,6 +25,7 @@ const routes = {
   gallery: renderGallery,
   styles: renderStyles,
   editor: renderEditor,
+  tools: renderTools,
   workflow: renderWorkflow,
 };
 
@@ -259,6 +260,33 @@ function renderEditor() {
   return mountEditor(document.getElementById("editor-root"));
 }
 
+// ---------------- tools page ----------------
+function renderTools(param) {
+  app.innerHTML = `
+    <div class="page-head">
+      <div class="en">Art Tools</div>
+      <h1>艺术工具</h1>
+      <p>把喜欢的图像效果做成可以反复使用的小工具：左侧调参数，右侧实时预览，一键导出。与模板工坊互补——模板管版式，工具管效果。</p>
+    </div>
+    <div id="tools-root"><div class="tools-loading">工具加载中…</div></div>`;
+  const root = document.getElementById("tools-root");
+  let cleanup = () => {};
+  let cancelled = false;
+  import("./tools/index.js")
+    .then(({ mountTools }) => {
+      if (cancelled) return;
+      cleanup = mountTools(root, param) || (() => {});
+    })
+    .catch((err) => {
+      console.error(err);
+      root.innerHTML = `<p class="tools-loading">工具加载失败：${escapeHtml(err?.message || err)}</p>`;
+    });
+  return () => {
+    cancelled = true;
+    cleanup();
+  };
+}
+
 // ---------------- workflow page ----------------
 function renderWorkflow() {
   app.innerHTML = `
@@ -289,6 +317,16 @@ function renderWorkflow() {
       </div>
       <div class="flow-card">
         <div class="num">FLOW 03</div>
+        <h3>用艺术工具做效果</h3>
+        <ol>
+          <li>进入<b>艺术工具</b>，选一个效果工具（标本画布 / 技术线稿 / 图文混排）</li>
+          <li>上传自己的图片（或直接用内置演示图），左侧调参数，右侧实时看效果</li>
+          <li>满意后导出高清 PNG / SVG，可直接用于海报底图或素材</li>
+          <li>看到新的效果类灵感？对 AI 说「参考这个视频/图，给艺术工具加一个新工具」</li>
+        </ol>
+      </div>
+      <div class="flow-card">
+        <div class="num">FLOW 04</div>
         <h3>快速出一张海报</h3>
         <ol>
           <li>进入<b>模板工坊</b>，选一个风格模板</li>

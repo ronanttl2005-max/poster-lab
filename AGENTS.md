@@ -45,7 +45,15 @@
 - `aiPrompt` 是给生图 AI 的中文提示词，要具体到构图、色彩、字体气质，一段话不分行。
 - 合并或重命名风格时，同步更新 `data/inspirations.js` 中所有对应的 `styleId`。
 
-## 任务四：维护后端 API
+## 任务四：维护艺术工具
+
+- 工具都在 `js/tools/`，注册表是 `js/tools/index.js`（import 模块并加入 `TOOLS` 数组即可上架）。
+- 每个工具模块 default 导出 `{ id, name, nameEn, desc, tags, cover, mount(container) }`；`mount` 渲染左控制面板 + 右画布区，返回清理函数。
+- 共享算法（主体分割、半调网点、贴纸描边、拖拽、导出、控件构建）都在 `js/tools/shared.js`，新工具优先复用，不要重复实现。
+- 工具页路由是 `#/tools`（工具箱）与 `#/tools/<id>`（具体工具），由 `js/app.js` 动态 import。
+- 新工具必须做到「不上传素材也能立即看到完整效果」（用 `demoSubjectsImage()` 或随机生成兜底）。
+
+## 任务五：维护后端 API
 
 - API 入口在 `server/index.js`，数据层在 `server/store.js`。
 - 保持 `GET /api/health`、`GET /api/bootstrap` 和三个集合接口兼容。
