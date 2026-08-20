@@ -868,6 +868,19 @@ main {
 .ref-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
 .ref-thumb:hover img { transform: scale(1.06); }
 
+/* 双向关联跳转 & 模板推荐 */
+.ref-jump {
+  display: inline-block; margin-top: 12px; margin-right: 10px;
+  padding: 7px 14px; border-radius: 8px; font-size: 12.5px;
+  background: var(--accent-soft); color: var(--accent-strong); text-decoration: none;
+  border: 1px solid transparent; transition: all .15s;
+}
+.ref-jump:hover { border-color: var(--accent); background: var(--accent-pale); }
+.tpl-recommend {
+  font-size: 11.5px; line-height: 1.7; color: #9a6b00; background: #fff7e6;
+  border: 1px solid #f3e2b8; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
+}
+
 /* lightbox 系列导航 */
 .lightbox-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;

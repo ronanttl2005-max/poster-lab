@@ -25,6 +25,7 @@ export const TEMPLATES = [
     name: "极简访谈页",
     styleId: "minimal-editorial",
     desc: "ABCD 式大留白访谈排版：描边大数字 + 双色文字层级",
+    recommend: "小红书 3:4 / 公众号内页 · 导出 1500×2000；文字多时保持小字号，靠留白撑住",
     fields: [
       { key: "num", label: "编号（如 Q1）", type: "text", default: "Q2" },
       {
@@ -56,6 +57,7 @@ export const TEMPLATES = [
     name: "瑞士网格主视觉",
     styleId: "swiss-grid",
     desc: "IBM 式几何图形 + 模块信息区：条纹阵列与几何眼睛",
+    recommend: "活动主视觉 / A4 印刷（3:4 接近 A 系纸张）· 导出 1500×2000 印刷可再放大",
     fields: [
       { key: "brand", label: "品牌名", type: "text", default: "POSTER LAB" },
       { key: "title", label: "标题（粗体）", type: "text", default: "TechXchange" },
@@ -101,6 +103,7 @@ export const TEMPLATES = [
     name: "波普撞色征集",
     styleId: "pop-clash",
     desc: "Hiiibrand 式纯色大底 + 瓶盖物件 + 双语清单",
+    recommend: "小红书 3:4 / 朋友圈海报 · 高饱和底色在手机小图下依然醒目",
     fields: [
       { key: "bg", label: "底色", type: "color", default: "#37C0F0" },
       { key: "capColor", label: "瓶盖色", type: "color", default: "#C9702F" },
@@ -141,6 +144,7 @@ export const TEMPLATES = [
     name: "新丑俱乐部告示",
     styleId: "brutalist-type",
     desc: "Public Records 式：图形区 + 跑马灯地址条 + 等宽字信息表",
+    recommend: "演出/活动宣传 · Instagram 4:5 裁切安全；信息表适合排期类内容",
     fields: [
       { key: "image", label: "顶部图像（可选，建议黑白）", type: "image", default: "" },
       { key: "accent", label: "色块窗颜色", type: "color", default: "#FFE600" },
@@ -200,6 +204,7 @@ export const TEMPLATES = [
     name: "热感光效人像",
     styleId: "thermal-glow",
     desc: "Thermal Vision 式：热成像模糊主体 + 色谱图例 + 三栏小字",
+    recommend: "音乐/视觉类封面 · 3:4 或裁成 1:1 都成立；深底在暗色模式 App 里更融合",
     fields: [
       { key: "title", label: "标题（衬线）", type: "text", default: "Thermal Vision" },
       {
@@ -245,6 +250,7 @@ export const TEMPLATES = [
     name: "文字即海报",
     styleId: "photo-text",
     desc: "We removed the heart 式：失焦照片 + 白色衬线逐行推进",
+    recommend: "小红书 3:4 图文封面 · 照片选暗部多的，白字才有对比",
     fields: [
       { key: "image", label: "背景照片（建议模糊/情绪化）", type: "image", default: "" },
       {
@@ -288,6 +294,7 @@ export const TEMPLATES = [
     name: "编辑网格文字页",
     styleId: "minimal-editorial",
     desc: "以文字为主角的纵向编辑网格：眉题、标题、正文和页码均可编辑",
+    recommend: "长文分享 / 公众号次条封面 · 3:4 竖版；正文别超过三段",
     fields: [
       { key: "eyebrow", label: "眉题 / 编号", type: "text", default: "FIELD NOTE / 06" },
       { key: "title", label: "主标题", type: "textarea", default: "Make space\nfor a clear idea." },
@@ -322,6 +329,7 @@ export const TEMPLATES = [
     name: "竖排文字海报",
     styleId: "brutalist-type",
     desc: "中文竖排 + 英文横排 + 侧边信息条，适合展览与活动标题",
+    recommend: "展览海报 / 书法字体类内容 · 3:4 竖版最大化竖排优势",
     fields: [
       { key: "title", label: "中文主标题", type: "textarea", default: "把\n空白\n留给\n想法" },
       { key: "english", label: "英文副标题", type: "text", default: "A TYPOGRAPHIC STUDY" },
@@ -349,6 +357,7 @@ export const TEMPLATES = [
     name: "CMYK 错位大字",
     styleId: "cmyk-halftone",
     desc: "四色分层、套印偏移和印刷参数全部可编辑的标题模板",
+    recommend: "实验字体/自我介绍页 · 3:4；偏移量别超过 8px，否则小图上糊成一团",
     fields: [
       { key: "kicker", label: "顶部小标题", type: "text", default: "PRINT / PROCESS / 03" },
       { key: "title", label: "主标题", type: "text", default: "OVERPRINT" },
@@ -388,6 +397,7 @@ export const TEMPLATES = [
     name: "莫尔标题场",
     styleId: "moire-pattern",
     desc: "大标题与干涉波纹叠加：颜色、频率和说明文字可调整",
+    recommend: "视觉实验类分享 · 3:4 / 1:1 均可；波纹密度在手机上看比电脑上更密，导出前缩小检查",
     fields: [
       { key: "title", label: "主标题", type: "text", default: "MOIRÉ FIELD" },
       { key: "caption", label: "说明文字", type: "textarea", default: "Two grids. One moving image.\nOptical study no. 04." },
@@ -419,6 +429,7 @@ export const TEMPLATES = [
     name: "蓝晒档案页",
     styleId: "cyanotype",
     desc: "负片图形占位 + 档案信息排版，适合植物、建筑和收藏记录",
+    recommend: "收藏记录 / 系列内页 · 3:4 竖版；同系列多张时固定纸张色和蓝色，只换主体",
     fields: [
       { key: "title", label: "档案标题", type: "text", default: "SUN PRINT / SPECIMEN" },
       { key: "subject", label: "主体词", type: "text", default: "LEAF STUDY" },
@@ -447,6 +458,7 @@ export const TEMPLATES = [
     name: "水核短句海报",
     styleId: "hydro-core",
     desc: "透明水滴、柔和焦散和短句文字，可编辑标题与信息层级",
+    recommend: "短句/心情类内容 · 小红书 3:4；短句两行以内效果最好",
     fields: [
       { key: "quote", label: "主句（支持 *斜体*）", type: "textarea", default: "Water makes\nlight visible." },
       { key: "author", label: "署名 / 说明", type: "text", default: "HYDRO-CORE / TEXT REFRACTION" },
@@ -465,6 +477,98 @@ export const TEMPLATES = [
         <div style="position:absolute;top:365px;left:66px;right:66px;font-family:Georgia,serif;font-size:${v.size}px;line-height:1.03;letter-spacing:-3px;white-space:pre-wrap;text-shadow:0 2px 18px rgba(255,255,255,.55);">${rich(v.quote)}</div>
         <div style="position:absolute;bottom:52px;left:58px;right:58px;border-top:1px solid ${v.ink}66;padding-top:13px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:1.6px;">${esc(v.meta)}</div>
       </div>`,
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "photo-diary",
+    name: "白底摄影札记",
+    styleId: "photo-text",
+    desc: "小红书式白底照片拼图：克制留白 + 上下/双联构图 + 可调滤镜，传两张照片即可成组",
+    recommend: "小红书竖版 3:4 · 导出 1500×2000 可直接发布；同组多张请保持同一滤镜",
+    fields: [
+      { key: "layout", label: "构图", type: "select", default: "stack-sm-lg", options: [
+        { value: "stack-sm-lg", label: "上下双图（上窄下宽）" },
+        { value: "stack-equal", label: "上下双图（等宽）" },
+        { value: "side-by-side", label: "左右双联" },
+        { value: "single", label: "单图居中" },
+      ] },
+      { key: "photo1", label: "照片 1", type: "image", default: "" },
+      { key: "photo2", label: "照片 2", type: "image", default: "" },
+      { key: "margin", label: "画布边距", type: "range", default: "92", min: 40, max: 160 },
+      { key: "gap", label: "图间距", type: "range", default: "56", min: 16, max: 120 },
+      { key: "caption", label: "底部小字（可空）", type: "text", default: "PHOTO DIARY · 2026" },
+      { key: "bg", label: "背景色", type: "color", default: "#FFFFFF" },
+      { key: "preset", label: "滤镜预设", type: "select", default: "none", options: [
+        { value: "none", label: "原图" },
+        { value: "film-warm", label: "胶片暖调" },
+        { value: "film-cool", label: "胶片冷调" },
+        { value: "bw", label: "黑白高对比" },
+        { value: "muted", label: "低饱和灰调" },
+        { value: "vivid", label: "鲜艳增强" },
+      ] },
+      { key: "brightness", label: "亮度", type: "range", default: "100", min: 60, max: 140 },
+      { key: "contrast", label: "对比度", type: "range", default: "100", min: 60, max: 150 },
+      { key: "saturate", label: "饱和度", type: "range", default: "100", min: 0, max: 200 },
+      { key: "warmth", label: "色温（左冷右暖）", type: "range", default: "0", min: -50, max: 50 },
+      { key: "grain", label: "颗粒感", type: "range", default: "0", min: 0, max: 100 },
+    ],
+    render: (v) => {
+      const PLACEHOLDER = (label) =>
+        "data:image/svg+xml;utf8," +
+        encodeURIComponent(
+          `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='700'><rect width='600' height='700' fill='#E8ECEF'/><rect x='250' y='285' width='100' height='74' rx='12' fill='none' stroke='#AAB4BC' stroke-width='5'/><circle cx='300' cy='322' r='22' fill='none' stroke='#AAB4BC' stroke-width='5'/><rect x='283' y='272' width='34' height='16' rx='5' fill='#AAB4BC'/><text x='300' y='420' font-family='monospace' font-size='20' fill='#8A959E' text-anchor='middle' letter-spacing='3'>${label}</text></svg>`
+        );
+      const m = Number(v.margin) || 92;
+      const gap = Number(v.gap) || 56;
+      const presets = {
+        none: "",
+        "film-warm": "sepia(28%) saturate(108%) contrast(103%)",
+        "film-cool": "saturate(88%) hue-rotate(-8deg) brightness(103%)",
+        bw: "grayscale(100%) contrast(118%)",
+        muted: "saturate(62%) contrast(96%) brightness(104%)",
+        vivid: "saturate(140%) contrast(108%)",
+      };
+      const warmth = Number(v.warmth) || 0;
+      const warmthFilter = warmth > 0
+        ? ` sepia(${Math.round(warmth * 0.8)}%)`
+        : warmth < 0 ? ` hue-rotate(${Math.round(warmth * 0.35)}deg)` : "";
+      const filter = `${presets[v.preset] || ""} brightness(${v.brightness}%) contrast(${v.contrast}%) saturate(${v.saturate}%)${warmthFilter}`.trim();
+      const grainOpacity = (Number(v.grain) || 0) / 100 * 0.45;
+      const frame = (src, label, style) => `
+        <div style="position:absolute;${style}overflow:hidden;background:#E8ECEF;">
+          <img src="${src || PLACEHOLDER(label)}" style="width:100%;height:100%;object-fit:cover;display:block;filter:${filter};" />
+          ${grainOpacity > 0 ? `<div style="position:absolute;inset:0;background:url(&quot;${NOISE}&quot;);opacity:${grainOpacity};pointer-events:none;"></div>` : ""}
+        </div>`;
+      const innerW = 750 - m * 2;
+      const innerH = 1000 - m * 2 - 30;
+      let photos = "";
+      if (v.layout === "single") {
+        photos = frame(v.photo1, "PHOTO 01", `left:${m}px;top:${m}px;width:${innerW}px;height:${innerH}px;`);
+      } else if (v.layout === "side-by-side") {
+        const cw = (innerW - gap) / 2;
+        const ch = Math.min(innerH, cw * 1.35);
+        const top = m + (innerH - ch) / 2;
+        photos = frame(v.photo1, "PHOTO 01", `left:${m}px;top:${top}px;width:${cw}px;height:${ch}px;`)
+          + frame(v.photo2, "PHOTO 02", `left:${m + cw + gap}px;top:${top}px;width:${cw}px;height:${ch}px;`);
+      } else if (v.layout === "stack-equal") {
+        const ch = (innerH - gap) / 2;
+        photos = frame(v.photo1, "PHOTO 01", `left:${m}px;top:${m}px;width:${innerW}px;height:${ch}px;`)
+          + frame(v.photo2, "PHOTO 02", `left:${m}px;top:${m + ch + gap}px;width:${innerW}px;height:${ch}px;`);
+      } else {
+        // stack-sm-lg：上窄下宽（参考街拍札记系列）
+        const topW = Math.round(innerW * 0.58);
+        const topH = Math.round(innerH * 0.46);
+        const bottomH = innerH - topH - gap;
+        photos = frame(v.photo1, "PHOTO 01", `left:${m + (innerW - topW) / 2}px;top:${m}px;width:${topW}px;height:${topH}px;`)
+          + frame(v.photo2, "PHOTO 02", `left:${m}px;top:${m + topH + gap}px;width:${innerW}px;height:${bottomH}px;`);
+      }
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};">
+        ${photos}
+        ${v.caption ? `<div style="position:absolute;bottom:26px;right:${m}px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:#B9BFC6;">${esc(v.caption)}</div>` : ""}
+      </div>`;
+    },
   },
 ];
 

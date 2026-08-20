@@ -17,6 +17,8 @@
 3. `PATCH /api/inspirations/:id` 更新 `styleId/title/tags/note` 并把 `status` 置空（需要 Bearer Token，问用户要或读部署配置）。
 4. 建议同时把图片下载存入 `assets/inspirations/`（编号顺延）、在 `data/inspirations.js` 追加记录并提交，这样种子数据与线上一致，重新部署也不丢。
 
+**成组规则（重要）**：用户一次性发来多张图时，先判断是否为同一套组（同一版式体系/同一滤镜/同一主题的连续创作）。是 → 全组共用一个 `seriesId`（如 `series-xxx`）+ 相同 `subStyle`，灵感库会自动叠成一摞展示；同组只需在 note 里各写差异点。如果这组图对应某个模板/工具，还要给每张加 `refFor: ["template:<id>"]` 形成双向关联。
+
 传统 `inbox/` 文件夹流程：
 
 流程：

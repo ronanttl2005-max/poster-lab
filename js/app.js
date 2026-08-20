@@ -828,6 +828,18 @@ function showLightboxCurrent() {
     ${i.subStyle ? `<span class="tag sub-tag">${escapeHtml(i.subStyle)}</span>` : ""}
     <p class="note">${escapeHtml(i.note || "")}</p>
     <div class="card-tags">${(i.tags || []).map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>
+    ${(i.refFor || []).map((target) => {
+      const [kind, id] = target.split(":");
+      if (kind === "template") {
+        const name = window.PosterLab?.templates?.find((t) => t.id === id)?.name || id;
+        return `<a class="ref-jump" href="#/editor/${safeId(id)}">↗ 用这个版式出图 · ${escapeHtml(name)}</a>`;
+      }
+      if (kind === "tool") {
+        const name = window.PosterLab?.tools?.find((t) => t.id === id)?.name || id;
+        return `<a class="ref-jump" href="#/tools/${safeId(id)}">↗ 打开对应工具 · ${escapeHtml(name)}</a>`;
+      }
+      return "";
+    }).join("")}
   `;
   const multi = lightboxList.length > 1;
   lbPrev.classList.toggle("hidden", !multi);
@@ -853,7 +865,7 @@ function closeLightbox({ restoreFocus = true } = {}) {
 lb.querySelector(".lightbox-close").addEventListener("click", () => closeLightbox());
 lb.querySelector(".lightbox-backdrop").addEventListener("click", () => closeLightbox());
 lb.addEventListener("click", (event) => {
-  if (event.target.closest(".style-link[href]")) closeLightbox({ restoreFocus: false });
+  if (event.target.closest(".style-link[href], .ref-jump")) closeLightbox({ restoreFocus: false });
 });
 document.addEventListener("keydown", (event) => {
   if (lb.classList.contains("hidden")) return;
@@ -963,7 +975,7 @@ function renderStyles(param) {
 }
 
 // ---------------- editor page ----------------
-function renderEditor() {
+function renderEditor(param) {
   app.innerHTML = `
     <div class="page-head">
       <div class="en">Template Studio</div>
@@ -971,7 +983,7 @@ function renderEditor() {
       <p>每套风格沉淀成一个可编辑模板：改文字、换颜色、传照片，实时预览，一键导出 PNG。旁边会显示这个模板对应的参考原图，随时对照。</p>
     </div>
     <div id="editor-root"></div>`;
-  return mountEditor(document.getElementById("editor-root"));
+  return mountEditor(document.getElementById("editor-root"), param ? safeId(param) : undefined);
 }
 
 // ---------------- tools page ----------------
@@ -1089,6 +1101,15 @@ window.PosterLab = {
 };
 
 route();
+
+// 预载模板名称，供 lightbox 跳转链接与「挂为参考图」弹窗显示
+import("./templates.js")
+  .then((m) => {
+    if (!window.PosterLab.templates.length) {
+      window.PosterLab.templates = m.TEMPLATES.map(({ id, name }) => ({ id, name }));
+    }
+  })
+  .catch(() => {});
 
 loadCatalog({
   fallbackInspirations: BUNDLED_INSPIRATIONS,

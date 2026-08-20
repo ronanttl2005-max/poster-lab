@@ -20,7 +20,8 @@ function getValues(tpl) {
   return stateByTemplate[tpl.id];
 }
 
-export function mountEditor(root) {
+export function mountEditor(root, initialId) {
+  if (initialId && TEMPLATE_MAP[initialId]) currentId = initialId;
   root.innerHTML = `
     <div class="editor-layout">
       <div class="editor-side">
@@ -85,7 +86,10 @@ export function mountEditor(root) {
     const tpl = TEMPLATE_MAP[currentId];
     const v = getValues(tpl);
     form.innerHTML =
-      `<p style="font-size:12px;color:var(--text-2);margin-bottom:14px;">${esc(tpl.desc)}</p>` +
+      `<p style="font-size:12px;color:var(--text-2);margin-bottom:${tpl.recommend ? 8 : 14}px;">${esc(tpl.desc)}</p>` +
+      (tpl.recommend
+        ? `<p class="tpl-recommend">◎ 适用场景：${esc(tpl.recommend)}</p>`
+        : "") +
       tpl.fields
         .map((f) => {
           const val = v[f.key] ?? f.default;
