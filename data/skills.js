@@ -11,7 +11,7 @@
 //   inputHint 输入区提示文案
 //
 //   —— image 类专用 ——
-//   model     调用的模型（默认 gpt-image-1）
+//   model     调用的模型（默认 gpt-image-2；网关不支持时自动尝试兼容模型）
 //   size      输出尺寸（如 "1024x1024"）
 //   prompt    传给 AI 的英文指令（决定效果）
 //
@@ -54,7 +54,7 @@ export const SKILLS = [
     tags: ["图生图", "涂鸦", "人像"],
     cover: COVER_DOODLE,
     coverImage: "",
-    model: "gpt-image-1",
+    model: "gpt-image-2",
     size: "1024x1024",
     prompt:
       "Keep the original photo fully visible. Add playful hand-drawn doodles over the face and around the subject — squiggles, tiny stars, cartoon glasses, a little hat, sparkles and speech bubbles — drawn in a bold black marker / ballpoint pen sketch style, as if someone doodled on top of the printed photo. Only overlay the doodles, do not repaint or replace the photo underneath.",
