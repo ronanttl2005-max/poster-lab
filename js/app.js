@@ -1036,7 +1036,7 @@ function renderSkills(param) {
     <div class="page-head">
       <div class="en">AI Skills</div>
       <h1>Skill 库</h1>
-      <p>把喜欢的 AI 效果做成一张张卡片：看到中意的，上传自己的图片或输入需求，一键复刻。图像 Skill 优先使用你自己的 API Key；接口不可用时可在浏览器本地完成基础效果，Key 只存本机、不进代码。</p>
+      <p>把喜欢的 AI 效果做成一张张卡片：上传自己的图片或输入需求，一键复刻。语义型图像 Skill 会先理解画面再编辑，需要使用你自己的 AI API Key；Key 只存本机、不进代码。</p>
     </div>
     <div id="skills-root"><div class="tools-loading">Skill 加载中…</div></div>`;
   const root = document.getElementById("skills-root");
