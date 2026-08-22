@@ -9,8 +9,9 @@
 import specimen from "./specimen.js";
 import techlines from "./techlines.js";
 import typeflow from "./typeflow.js";
+import gridlab from "./gridlab.js";
 
-export const TOOLS = [specimen, techlines, typeflow];
+export const TOOLS = [gridlab, specimen, techlines, typeflow];
 
 if (window.PosterLab) {
   window.PosterLab.tools = TOOLS.map(({ id, name }) => ({ id, name }));
