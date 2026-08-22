@@ -23,12 +23,17 @@ const mimeTypes = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
 };
 
 const jsonHeaders = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store",
 };
+
+const OPENAI_API_BASE = "https://api.openai.com/v1";
+const GITHUB_PAGES_ORIGIN = "https://ronanttl2005-max.github.io";
 
 function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, jsonHeaders);
@@ -90,6 +95,63 @@ async function readBody(request, maxBytes = 1024 * 1024) {
     error.statusCode = 400;
     throw error;
   }
+}
+
+function bearerToken(request) {
+  const authorization = request.headers.authorization || "";
+  return authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+}
+
+function dataUrlBytes(dataUrl) {
+  const match = String(dataUrl || "").match(/^data:([a-z0-9/+.-]+);base64,(.*)$/is);
+  if (!match) return null;
+  const bytes = Buffer.from(match[2], "base64");
+  return bytes.length ? { mime: match[1].toLowerCase(), bytes } : null;
+}
+
+async function proxyOpenAi(response, upstream) {
+  const contentType = upstream.headers.get("content-type") || "application/json; charset=utf-8";
+  const body = await upstream.text();
+  response.writeHead(upstream.status, {
+    "Content-Type": contentType,
+    "Cache-Control": "no-store",
+  });
+  response.end(body);
+}
+
+async function proxyOpenAiResponses(request, response, maxBytes = 20 * 1024 * 1024) {
+  const apiKey = bearerToken(request);
+  if (!apiKey) return sendError(response, 401, "An OpenAI API key is required");
+  const payload = await readBody(request, maxBytes);
+  const upstream = await fetch(`${OPENAI_API_BASE}/responses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  await proxyOpenAi(response, upstream);
+}
+
+async function proxyOpenAiImageEdit(request, response, maxBytes = 20 * 1024 * 1024) {
+  const apiKey = bearerToken(request);
+  if (!apiKey) return sendError(response, 401, "An OpenAI API key is required");
+  const payload = await readBody(request, maxBytes);
+  const image = dataUrlBytes(payload?.imageDataUrl);
+  if (!image) return sendError(response, 400, "'imageDataUrl' must be a base64 image data URL");
+  const form = new FormData();
+  form.append("model", String(payload.model || "gpt-image-2"));
+  form.append("prompt", String(payload.prompt || ""));
+  form.append("image", new Blob([image.bytes], { type: image.mime }), "input-image");
+  if (payload.size) form.append("size", String(payload.size));
+  if (payload.quality) form.append("quality", String(payload.quality));
+  const upstream = await fetch(`${OPENAI_API_BASE}/images/edits`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  await proxyOpenAi(response, upstream);
 }
 
 function collectionPayload(collection, items, query) {
@@ -272,8 +334,14 @@ export function createServer({
   const store = new DataStore(dataFile);
   const uploadsDir = process.env.POSTER_LAB_UPLOADS_DIR || path.join(path.dirname(store.filePath), "uploads");
   return http.createServer(async (request, response) => {
-    if (corsOrigin) {
-      response.setHeader("Access-Control-Allow-Origin", corsOrigin);
+    const requestOrigin = request.headers.origin || "";
+    // GitHub Pages is a separate static origin. Allow only this known site by
+    // default; deployments may still override it with CORS_ORIGIN.
+    const allowedOrigin = corsOrigin === "*"
+      ? "*"
+      : corsOrigin || (requestOrigin === GITHUB_PAGES_ORIGIN ? GITHUB_PAGES_ORIGIN : "");
+    if (allowedOrigin) {
+      response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
       response.setHeader("Vary", "Origin");
       response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
       response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -301,6 +369,16 @@ export function createServer({
       if (url.pathname === "/api/bootstrap" && request.method === "GET") {
         const { inspirations, styles, templates, folders } = await store.snapshot();
         sendJson(response, 200, { inspirations, styles, templates, folders });
+        return;
+      }
+
+      if (url.pathname === "/api/ai/responses" && request.method === "POST") {
+        await proxyOpenAiResponses(request, response);
+        return;
+      }
+
+      if (url.pathname === "/api/ai/images/edits" && request.method === "POST") {
+        await proxyOpenAiImageEdit(request, response);
         return;
       }
 
