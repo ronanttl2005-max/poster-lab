@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+# 每次推送到 main 分支时，自动把整个仓库作为静态站点发布到 GitHub Pages。
+# 纯静态托管：前端在拿不到 /api 后端时会自动回退到 data/*.js 内置数据，
+# 因此浏览灵感库、做海报、用艺术工具都可正常工作（写操作需另接后端）。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GitHub Pages 部署所需的最小权限集合。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，新推送会取消进行中的旧部署。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 上传仓库根目录（index.html 在这里）。server/ 等后端文件一并上传但不会被执行，无害。
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
