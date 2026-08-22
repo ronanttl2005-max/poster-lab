@@ -989,6 +989,7 @@ main {
 .skill-output-empty, .skill-loading { color: var(--text-3); font-size: 13px; margin: auto; }
 .skill-result-img img, .skill-result-text { width: 100%; }
 .skill-result-img img { border-radius: 10px; }
+.skill-mode-note { color: var(--text-3); font-size: 12px; line-height: 1.5; margin: 10px 0; }
 .skill-result-text {
   white-space: pre-wrap; word-break: break-word; font: inherit; font-size: 14px; line-height: 1.7;
   margin: 0; color: var(--text);
