@@ -10,8 +10,10 @@
 //   · 站点部署在 GitHub Pages（纯静态）也能跑，因为不依赖后端。
 // ============================================================
 
-const DEFAULT_API_BASE = "https://api.openai-next.com/v1";
 const OFFICIAL_API_BASE = "https://api.openai.com/v1";
+const COMPATIBLE_API_BASE = "https://api.openai-next.com/v1";
+// 官方接口是唯一能确定提供 GPT Image 模型的默认选项；兼容网关保留为手动选择。
+const DEFAULT_API_BASE = OFFICIAL_API_BASE;
 const KEY_STORE = "posterLabAiKey"; // 独立于管理密钥（posterLabAdminToken）
 const API_BASE_STORE = "posterLabAiBase";
 const IMAGE_MODEL_STORE = "posterLabAiImageModel";
@@ -98,6 +100,7 @@ async function callImageEdit(skill, file) {
     form.append("prompt", skill.prompt || "");
     form.append("image", file, file.name || "input.png");
     if (skill.size) form.append("size", skill.size);
+    if (skill.quality) form.append("quality", skill.quality);
     try {
       const res = await fetch(`${getApiBase()}/images/edits`, {
         method: "POST",
@@ -109,6 +112,8 @@ async function callImageEdit(skill, file) {
         const error = new Error(data?.error?.message || `HTTP ${res.status}`);
         error.status = res.status;
         error.code = data?.error?.code || data?.error?.type || "";
+        error.apiBase = getApiBase();
+        error.model = model;
         throw error;
       }
       const item = data?.data?.[0];
@@ -120,7 +125,9 @@ async function callImageEdit(skill, file) {
       if (!isModelUnavailable(error)) throw error;
     }
   }
-  throw lastError || new Error("没有可用的图像模型");
+  const error = lastError || new Error("没有可用的图像模型");
+  error.apiBase ||= getApiBase();
+  throw error;
 }
 
 function isModelUnavailable(error) {
@@ -151,9 +158,45 @@ function drawStar(ctx, x, y, radius) {
   ctx.stroke();
 }
 
-function drawLocalDoodles(ctx, width, height) {
-  const unit = Math.max(2, Math.min(width, height) * 0.006);
-  const stroke = "rgba(20, 24, 30, 0.9)";
+async function detectFaceBox(image, width, height) {
+  // FaceDetector 只在部分浏览器可用；不可用时使用适合常见人像构图的温和默认值。
+  const fallback = {
+    x: width * 0.33,
+    y: height * 0.16,
+    width: width * 0.34,
+    height: height * 0.28,
+  };
+  try {
+    if (typeof FaceDetector !== "undefined") {
+      const detector = new FaceDetector({ fastMode: true, maxDetectedFaces: 3 });
+      const faces = await detector.detect(image);
+      const face = (faces || [])
+        .map((item) => item?.boundingBox)
+        .filter((box) => box && box.width > 0 && box.height > 0)
+        .sort((a, b) => (b.width * b.height) - (a.width * a.height))[0];
+      if (face) return {
+        x: Math.max(0, face.x),
+        y: Math.max(0, face.y),
+        width: Math.min(width - Math.max(0, face.x), face.width),
+        height: Math.min(height - Math.max(0, face.y), face.height),
+      };
+    }
+  } catch { /* 浏览器未提供原生人脸检测时走默认构图 */ }
+  return fallback;
+}
+
+function drawRoughPath(ctx, draw) {
+  draw();
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.translate(0.8, -0.5);
+  draw();
+  ctx.restore();
+}
+
+function drawLocalDoodles(ctx, width, height, face) {
+  const unit = Math.max(2, Math.min(width, height) * 0.0045);
+  const stroke = "rgba(18, 18, 20, 0.94)";
   ctx.save();
   ctx.strokeStyle = stroke;
   ctx.fillStyle = stroke;
@@ -161,40 +204,62 @@ function drawLocalDoodles(ctx, width, height) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  // 一组与照片内容无关、但会自然落在脸部/主体附近的马克笔线条。
-  const cx = width * 0.5;
-  const cy = height * 0.39;
-  const rx = width * 0.085;
-  const ry = height * 0.055;
-  ctx.beginPath();
-  ctx.ellipse(cx - rx * 0.62, cy, rx, ry, -0.05, 0, Math.PI * 2);
-  ctx.ellipse(cx + rx * 0.62, cy, rx, ry, 0.05, 0, Math.PI * 2);
-  ctx.moveTo(cx - rx * 0.05, cy);
-  ctx.lineTo(cx + rx * 0.05, cy);
-  ctx.stroke();
+  const cx = face.x + face.width * 0.5;
+  const eyeY = face.y + face.height * 0.48;
+  const lensW = face.width * 0.32;
+  const lensH = face.height * 0.18;
 
-  ctx.beginPath();
-  ctx.moveTo(cx - width * 0.11, cy - height * 0.105);
-  ctx.quadraticCurveTo(cx, cy - height * 0.18, cx + width * 0.11, cy - height * 0.105);
-  ctx.lineTo(cx + width * 0.075, cy - height * 0.19);
-  ctx.lineTo(cx - width * 0.075, cy - height * 0.19);
-  ctx.closePath();
-  ctx.stroke();
+  // 眼镜：跟着检测到的人脸框走，而不是永远画在画布正中。
+  drawRoughPath(ctx, () => {
+    ctx.beginPath();
+    ctx.ellipse(cx - lensW * 0.63, eyeY, lensW, lensH, -0.04, 0, Math.PI * 2);
+    ctx.ellipse(cx + lensW * 0.63, eyeY, lensW, lensH, 0.04, 0, Math.PI * 2);
+    ctx.moveTo(cx - lensW * 0.08, eyeY);
+    ctx.quadraticCurveTo(cx, eyeY - lensH * 0.14, cx + lensW * 0.08, eyeY);
+    ctx.stroke();
+  });
 
-  drawStar(ctx, width * 0.17, height * 0.19, Math.min(width, height) * 0.045);
-  drawStar(ctx, width * 0.82, height * 0.23, Math.min(width, height) * 0.035);
-  drawStar(ctx, width * 0.76, height * 0.69, Math.min(width, height) * 0.05);
+  // 头顶小帽子 / 皇冠。
+  const hatY = face.y - face.height * 0.12;
+  drawRoughPath(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(cx - face.width * 0.31, hatY + face.height * 0.05);
+    ctx.quadraticCurveTo(cx, hatY - face.height * 0.13, cx + face.width * 0.31, hatY + face.height * 0.05);
+    ctx.lineTo(cx + face.width * 0.2, hatY + face.height * 0.13);
+    ctx.lineTo(cx - face.width * 0.2, hatY + face.height * 0.13);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - face.width * 0.16, hatY - face.height * 0.04);
+    ctx.lineTo(cx - face.width * 0.05, hatY - face.height * 0.19);
+    ctx.lineTo(cx + face.width * 0.04, hatY - face.height * 0.04);
+    ctx.lineTo(cx + face.width * 0.15, hatY - face.height * 0.18);
+    ctx.lineTo(cx + face.width * 0.2, hatY + face.height * 0.05);
+    ctx.stroke();
+  });
 
-  ctx.beginPath();
-  ctx.moveTo(width * 0.18, height * 0.73);
-  ctx.quadraticCurveTo(width * 0.1, height * 0.61, width * 0.23, height * 0.58);
-  ctx.quadraticCurveTo(width * 0.37, height * 0.55, width * 0.39, height * 0.68);
-  ctx.quadraticCurveTo(width * 0.39, height * 0.79, width * 0.25, height * 0.79);
-  ctx.lineTo(width * 0.18, height * 0.85);
-  ctx.lineTo(width * 0.19, height * 0.78);
-  ctx.stroke();
-  ctx.font = `600 ${Math.max(12, Math.round(width * 0.025))}px sans-serif`;
-  ctx.fillText("hi!", width * 0.235, height * 0.69);
+  const starR = Math.max(10, Math.min(width, height) * 0.035);
+  drawStar(ctx, Math.max(starR, face.x - face.width * 0.34), face.y + face.height * 0.15, starR);
+  drawStar(ctx, Math.min(width - starR, face.x + face.width * 1.34), face.y + face.height * 0.18, starR * 0.8);
+  drawStar(ctx, Math.min(width - starR, face.x + face.width * 1.2), face.y + face.height * 1.25, starR * 0.9);
+
+  // 空白区域的对话框和弯曲线，避免遮住脸部细节。
+  const bubbleX = Math.max(width * 0.04, face.x - face.width * 0.7);
+  const bubbleY = Math.min(height * 0.78, face.y + face.height * 1.02);
+  const bubbleW = Math.min(width * 0.25, Math.max(90, face.width * 0.85));
+  drawRoughPath(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(bubbleX, bubbleY);
+    ctx.quadraticCurveTo(bubbleX - bubbleW * 0.04, bubbleY - face.height * 0.34, bubbleX + bubbleW * 0.38, bubbleY - face.height * 0.36);
+    ctx.quadraticCurveTo(bubbleX + bubbleW, bubbleY - face.height * 0.36, bubbleX + bubbleW, bubbleY - face.height * 0.02);
+    ctx.quadraticCurveTo(bubbleX + bubbleW, bubbleY + face.height * 0.28, bubbleX + bubbleW * 0.44, bubbleY + face.height * 0.25);
+    ctx.lineTo(bubbleX + bubbleW * 0.25, bubbleY + face.height * 0.43);
+    ctx.lineTo(bubbleX + bubbleW * 0.28, bubbleY + face.height * 0.22);
+    ctx.quadraticCurveTo(bubbleX, bubbleY + face.height * 0.18, bubbleX, bubbleY);
+    ctx.stroke();
+  });
+  ctx.font = `700 ${Math.max(12, Math.round(face.width * 0.14))}px sans-serif`;
+  ctx.fillText("hi!", bubbleX + bubbleW * 0.35, bubbleY - face.height * 0.1);
   ctx.restore();
 }
 
@@ -210,7 +275,8 @@ async function createLocalDoodle(file) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("当前浏览器不支持图片画布");
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    drawLocalDoodles(ctx, canvas.width, canvas.height);
+    const face = await detectFaceBox(image, canvas.width, canvas.height);
+    drawLocalDoodles(ctx, canvas.width, canvas.height, face);
     return canvas.toDataURL("image/png");
   } finally {
     URL.revokeObjectURL(url);
@@ -225,6 +291,26 @@ function friendlyError(err) {
   return `运行失败：${msg}`;
 }
 
+function imageFallbackReason(err) {
+  const msg = String(err?.message || err).toLowerCase();
+  if (err?.status === 401 || /invalid.*key|unauthorized|incorrect api key|invalid token/.test(msg)) {
+    return "API Key 无效或不是 OpenAI 官方图像 API 的 key";
+  }
+  if (err?.status === 403 || /verification|organization|permission|forbidden/.test(msg)) {
+    return "当前账号没有 GPT Image 权限，或尚未完成组织验证";
+  }
+  if (err?.status === 429 || /quota|rate limit|balance|insufficient/.test(msg)) {
+    return "账号额度不足或触发限流";
+  }
+  if (/no available channels|model.*(not found|not available|unsupported)|unsupported.*model/.test(msg)) {
+    return `兼容网关没有 ${err?.model || "GPT Image"} 图像通道`;
+  }
+  if (/failed to fetch|network|cors|load failed/.test(msg)) {
+    return "浏览器无法连接该接口（网络或跨域限制）";
+  }
+  return "接口未返回可用图像";
+}
+
 // ---------------- 弹窗：填 API Key ----------------
 
 export function openAiKeyModal(onSaved) {
@@ -233,12 +319,12 @@ export function openAiKeyModal(onSaved) {
   backdrop.innerHTML = `
     <div class="modal-panel" role="dialog" aria-modal="true">
       <h3>填写 API Key</h3>
-      <p class="modal-hint">粘贴一次，这台设备之后一直记住。图像接口会自动尝试可用模型。</p>
+      <p class="modal-hint">图像编辑需要支持 GPT Image 的接口。官方 OpenAI API 请填有余额/图像权限的 OpenAI key；兼容网关如果没有图像通道会自动改用本地模式。</p>
       <input type="password" id="ai-key-input" class="modal-input" placeholder="sk-..." value="${esc(getAiKey())}" />
       <label class="modal-hint" for="ai-api-base">接口</label>
       <select id="ai-api-base" class="modal-input">
-        <option value="${esc(DEFAULT_API_BASE)}" ${getApiBase() === DEFAULT_API_BASE ? "selected" : ""}>兼容网关（当前）</option>
-        <option value="${esc(OFFICIAL_API_BASE)}" ${getApiBase() === OFFICIAL_API_BASE ? "selected" : ""}>OpenAI 官方 API</option>
+        <option value="${esc(OFFICIAL_API_BASE)}" ${getApiBase() === OFFICIAL_API_BASE ? "selected" : ""}>OpenAI 官方 API（推荐）</option>
+        <option value="${esc(COMPATIBLE_API_BASE)}" ${getApiBase() === COMPATIBLE_API_BASE ? "selected" : ""}>兼容网关（需支持图像模型）</option>
       </select>
       <label class="modal-hint" for="ai-image-model">图像模型</label>
       <select id="ai-image-model" class="modal-input">
@@ -362,7 +448,7 @@ function renderSkillWorkspace(root, skill) {
             // 网关没有图像模型时仍然给用户一个可下载的结果，避免 Skill 完全不可用。
             src = await createLocalDoodle(picked);
             mode = "local";
-            fallbackMessage = "当前接口暂不可用，已切换为本地涂鸦模式（照片不会上传）。";
+            fallbackMessage = `AI 接口不可用（${imageFallbackReason(error)}），已使用本地涂鸦模式（照片不会上传）。`;
             console.warn("Image Skill API unavailable; used local fallback", error);
           }
         }
