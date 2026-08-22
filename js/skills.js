@@ -12,6 +12,7 @@
 
 const OFFICIAL_API_BASE = "https://api.openai.com/v1";
 const COMPATIBLE_API_BASE = "https://api.openai-next.com/v1";
+const POSTER_API_ORIGIN = "https://poster-lab.onrender.com";
 // 官方接口是唯一能确定提供 GPT Image 模型的默认选项；兼容网关保留为手动选择。
 const DEFAULT_API_BASE = OFFICIAL_API_BASE;
 const KEY_STORE = "posterLabAiKey"; // 独立于管理密钥（posterLabAdminToken）
@@ -20,6 +21,15 @@ const API_BASE_MIGRATION_STORE = "posterLabAiBaseOfficialV2";
 const IMAGE_MODEL_STORE = "posterLabAiImageModel";
 const DEFAULT_IMAGE_MODELS = ["gpt-image-2", "gpt-image-1.5", "gpt-image-1"];
 const DEFAULT_REASONING_MODEL = "gpt-5.6";
+
+function getAiProxyBase() {
+  const host = globalThis.location?.hostname || "";
+  if (host === "ronanttl2005-max.github.io") return `${POSTER_API_ORIGIN}/api/ai`;
+  if (globalThis.location?.protocol === "http:" || globalThis.location?.protocol === "https:") {
+    return `${globalThis.location.origin}/api/ai`;
+  }
+  return "http://127.0.0.1:4173/api/ai";
+}
 
 function normalizeApiBase(value) {
   const base = String(value || "").trim().replace(/\/+$/, "");
@@ -129,7 +139,7 @@ async function callResponsesImageEdit(skill, file) {
   };
   if (skill.size) tool.size = skill.size;
 
-  const res = await fetch(`${OFFICIAL_API_BASE}/responses`, {
+  const res = await fetch(`${getAiProxyBase()}/responses`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -150,7 +160,8 @@ async function callResponsesImageEdit(skill, file) {
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     throw apiError(res, data, {
-      apiBase: OFFICIAL_API_BASE,
+      apiBase: getAiProxyBase(),
+      upstreamApiBase: OFFICIAL_API_BASE,
       model: reasoningModel,
       stage: "responses",
     });
@@ -160,7 +171,8 @@ async function callResponsesImageEdit(skill, file) {
     item?.type === "image_generation_call" && item?.result);
   if (!call?.result) {
     const error = new Error(data?.output_text || "接口已响应，但没有生成图片");
-    error.apiBase = OFFICIAL_API_BASE;
+    error.apiBase = getAiProxyBase();
+    error.upstreamApiBase = OFFICIAL_API_BASE;
     error.model = reasoningModel;
     error.stage = "responses";
     throw error;
@@ -175,24 +187,41 @@ async function callDirectImageEdit(skill, file) {
   const configuredModel = getImageModel() || skill.model || DEFAULT_IMAGE_MODELS[0];
   const models = [configuredModel, ...DEFAULT_IMAGE_MODELS].filter((model, index, all) => all.indexOf(model) === index);
   let lastError;
+  const proxyImage = getApiBase() === OFFICIAL_API_BASE;
+  const imageDataUrl = proxyImage ? await fileToDataUrl(file) : "";
 
   for (const model of models) {
     const form = new FormData();
-    form.append("model", model);
-    form.append("prompt", skill.prompt || "");
-    form.append("image", file, file.name || "input.png");
-    if (skill.size) form.append("size", skill.size);
-    if (skill.quality) form.append("quality", skill.quality);
+    let body = form;
+    const headers = { Authorization: `Bearer ${getAiKey()}` };
+    if (proxyImage) {
+      body = JSON.stringify({
+        model,
+        prompt: skill.prompt || "",
+        imageDataUrl,
+        size: skill.size || undefined,
+        quality: skill.quality || undefined,
+      });
+      headers["Content-Type"] = "application/json";
+    } else {
+      form.append("model", model);
+      form.append("prompt", skill.prompt || "");
+      form.append("image", file, file.name || "input.png");
+      if (skill.size) form.append("size", skill.size);
+      if (skill.quality) form.append("quality", skill.quality);
+    }
     try {
-      const res = await fetch(`${getApiBase()}/images/edits`, {
+      const endpoint = proxyImage ? `${getAiProxyBase()}/images/edits` : `${getApiBase()}/images/edits`;
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getAiKey()}` }, // 不要手动设 Content-Type，交给浏览器带 boundary
-        body: form,
+        headers,
+        body,
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         throw apiError(res, data, {
-          apiBase: getApiBase(),
+          apiBase: endpoint,
+          ...(proxyImage ? { upstreamApiBase: OFFICIAL_API_BASE } : {}),
           model,
           stage: "images",
         });

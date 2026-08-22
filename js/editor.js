@@ -1,5 +1,6 @@
 import { TEMPLATES, TEMPLATE_MAP } from "./templates.js";
 import { STYLE_MAP } from "../data/styles.js";
+import { processImage, RECIPE_LABELS } from "./poster-fx.js";
 
 const esc = (value) =>
   String(value ?? "").replace(
@@ -9,22 +10,39 @@ const esc = (value) =>
 
 // 每个模板的当前值（会话内记忆）
 const stateByTemplate = {};
+// 上传的原图（未经处理）。切换处理模式时要拿它重新加工，
+// 否则「深度 → 简单」只能拿到已经烧进效果的图，回不去。
+const rawsByTemplate = {};
 let currentId = TEMPLATES[0].id;
 
+// 保留键：图片处理模式。不是模板 field，但会塞进 values 里，
+// 好让 render(v) 在「简单」模式下自己决定要不要上 CSS filter。
+const MODE_KEY = "imgMode";
+const MODE_SIMPLE = "simple";
+const MODE_DEEP = "deep";
+
+// 声明了 fx 的 image 字段才需要处理模式开关。
+const fxFields = (tpl) => tpl.fields.filter((f) => f.type === "image" && f.fx);
+
+function defaultsFor(tpl) {
+  return {
+    ...Object.fromEntries(tpl.fields.map((f) => [f.key, f.default])),
+    [MODE_KEY]: MODE_SIMPLE,
+  };
+}
+
 function getValues(tpl) {
-  if (!stateByTemplate[tpl.id]) {
-    stateByTemplate[tpl.id] = Object.fromEntries(
-      tpl.fields.map((f) => [f.key, f.default])
-    );
-  }
+  if (!stateByTemplate[tpl.id]) stateByTemplate[tpl.id] = defaultsFor(tpl);
   return stateByTemplate[tpl.id];
 }
 
+function getRaws(tpl) {
+  if (!rawsByTemplate[tpl.id]) rawsByTemplate[tpl.id] = {};
+  return rawsByTemplate[tpl.id];
+}
+
 function applyPreset(tpl, preset) {
-  stateByTemplate[tpl.id] = {
-    ...Object.fromEntries(tpl.fields.map((f) => [f.key, f.default])),
-    ...preset.values,
-  };
+  stateByTemplate[tpl.id] = { ...defaultsFor(tpl), ...preset.values };
 }
 
 export function mountEditor(root, initialId, initialPresetId) {
@@ -108,6 +126,17 @@ export function mountEditor(root, initialId, initialPresetId) {
             .map((p, n) => `<button type="button" class="preset-chip" data-preset="${n}" title="按参考原图调好参数">${esc(p.name)}</button>`)
             .join("")}</div>`
         : "") +
+      (fxFields(tpl).length
+        ? `<div class="field"><label for="field-imgmode">上传图处理方式</label>
+            <select id="field-imgmode" data-imgmode>
+              <option value="${MODE_SIMPLE}" ${v[MODE_KEY] !== MODE_DEEP ? "selected" : ""}>简单（实时滤镜）</option>
+              <option value="${MODE_DEEP}" ${v[MODE_KEY] === MODE_DEEP ? "selected" : ""}>深度（重处理：${esc(
+              fxFields(tpl)
+                .map((f) => RECIPE_LABELS[f.fx] || f.fx)
+                .join(" / ")
+            )}）</option>
+            </select></div>`
+        : "") +
       tpl.fields
         .map((f) => {
           const val = v[f.key] ?? f.default;
@@ -136,16 +165,37 @@ export function mountEditor(root, initialId, initialPresetId) {
       })
     );
 
+    const modeSelect = form.querySelector("[data-imgmode]");
+    if (modeSelect) {
+      modeSelect.addEventListener("change", () => {
+        v[MODE_KEY] = modeSelect.value;
+        // 模式本身也影响 render(v)（简单模式靠 CSS filter），先重画一次
+        renderPoster();
+        // 再把已上传的原图按新模式重新加工一遍
+        fxFields(tpl).forEach((f) => {
+          const input = form.querySelector(`[data-k="${CSS.escape(f.key)}"]`);
+          applyFxField(tpl, f, input?.closest(".field")?.querySelector("label"));
+        });
+      });
+    }
+
     form.querySelectorAll("[data-k]").forEach((el) => {
       const key = el.dataset.k;
       if (el.dataset.type === "image") {
+        const labelEl = el.closest(".field")?.querySelector("label");
         el.addEventListener("change", () => {
           const file = el.files?.[0];
           if (!file) return;
           const reader = new FileReader();
           reader.onload = () => {
-            v[key] = reader.result;
-            renderPoster();
+            const field = tpl.fields.find((f) => f.key === key);
+            getRaws(tpl)[key] = reader.result;
+            if (field?.fx) {
+              applyFxField(tpl, field, labelEl);
+            } else {
+              v[key] = reader.result;
+              renderPoster();
+            }
           };
           reader.readAsDataURL(file);
         });
@@ -160,6 +210,38 @@ export function mountEditor(root, initialId, initialPresetId) {
         });
       }
     });
+  }
+
+  // 每个字段一个递增票号：连点两次上传时，只让最后一次的结果落地，
+  // 避免慢的那次盖掉快的那次。
+  const fxTickets = {};
+
+  // 把某个 fx 字段的原图按当前模式加工进 values。
+  // 简单模式直接用原图（视觉效果交给 render 里的 CSS filter），
+  // 深度模式走 canvas 重处理。processImage 内部已经兜底回落原图。
+  async function applyFxField(tpl, field, labelEl) {
+    const raws = getRaws(tpl);
+    const raw = raws[field.key];
+    if (!raw) return; // 还没上传过，别动模板默认占位图
+    const v = getValues(tpl);
+
+    if (v[MODE_KEY] !== MODE_DEEP) {
+      v[field.key] = raw;
+      renderPoster();
+      return;
+    }
+
+    const ticketKey = `${tpl.id}:${field.key}`;
+    const ticket = (fxTickets[ticketKey] = (fxTickets[ticketKey] || 0) + 1);
+    if (labelEl) labelEl.textContent = `${field.label}（处理中…）`;
+    try {
+      const out = await processImage(raw, field.fx, v);
+      if (fxTickets[ticketKey] !== ticket) return; // 已被更新的上传取代
+      v[field.key] = out;
+      renderPoster();
+    } finally {
+      if (fxTickets[ticketKey] === ticket && labelEl) labelEl.textContent = field.label;
+    }
   }
 
   function renderPoster() {
@@ -206,6 +288,8 @@ export function mountEditor(root, initialId, initialPresetId) {
 
   root.querySelector("#btn-reset").addEventListener("click", () => {
     delete stateByTemplate[currentId];
+    // 原图也要一起丢掉，否则重置后切换处理模式会把旧上传图又拉回来
+    delete rawsByTemplate[currentId];
     renderForm();
     renderPoster();
   });

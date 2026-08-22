@@ -1,5 +1,6 @@
 import { STYLES as BUNDLED_STYLES } from "../data/styles.js";
 import { INSPIRATIONS as BUNDLED_INSPIRATIONS } from "../data/inspirations.js";
+import { FOLDERS as BUNDLED_FOLDERS } from "../data/folders.js";
 import { mountEditor } from "./editor.js";
 import {
   loadCatalog,
@@ -1165,9 +1166,14 @@ import("./templates.js")
 loadCatalog({
   fallbackInspirations: BUNDLED_INSPIRATIONS,
   fallbackStyles: BUNDLED_STYLES,
+  fallbackFolders: BUNDLED_FOLDERS,
 }).then((catalog) => {
   catalogSource = catalog.source;
-  if (catalog.source === "bundled") return;
+  if (catalog.source === "bundled") {
+    folders = catalog.folders || BUNDLED_FOLDERS;
+    route();
+    return;
+  }
   inspirations = catalog.inspirations;
   styles = catalog.styles;
   folders = catalog.folders || [];

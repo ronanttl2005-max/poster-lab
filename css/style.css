@@ -1,4 +1,36 @@
 /* ============ Poster Lab · Editorial Blue ============ */
+
+/* 自托管海报字体。文件缺失时这些规则静默失败，所有使用处都带 fallback 栈。
+   下载清单见 assets/fonts/README.md */
+@font-face {
+  font-family: "Playfair Display";
+  src: url("../assets/fonts/playfair-display-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Playfair Display";
+  src: url("../assets/fonts/playfair-display-700italic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Anton";
+  src: url("../assets/fonts/anton-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Mono";
+  src: url("../assets/fonts/space-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   --bg: #f4f7fb;
@@ -20,6 +52,10 @@
   --radius: 16px;
   --sans: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   --mono: "SFMono-Regular", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  /* 海报专用字体栈（模板 render 里内联使用，这里留一份便于统一改动） */
+  --serif: "Playfair Display", Didot, "Bodoni 72", Georgia, "Times New Roman", serif;
+  --display: Anton, Haettenschweiler, "Arial Narrow", Impact, "Arial Black", sans-serif;
+  --poster-mono: "Space Mono", ui-monospace, Menlo, "Courier New", monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

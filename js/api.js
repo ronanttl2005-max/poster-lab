@@ -135,7 +135,7 @@ function validStyles(items) {
   );
 }
 
-export async function loadCatalog({ fallbackInspirations, fallbackStyles }) {
+export async function loadCatalog({ fallbackInspirations, fallbackStyles, fallbackFolders = [] }) {
   try {
     const bootstrap = await fetchJson("/bootstrap");
     const inspirations = unwrapArray(bootstrap, "inspirations");
@@ -170,7 +170,7 @@ export async function loadCatalog({ fallbackInspirations, fallbackStyles }) {
       ? "api-partial"
       : "bundled";
 
-  return { inspirations, styles, folders: [], source };
+  return { inspirations, styles, folders: fallbackFolders, source };
 }
 
 // Downscale to keep uploads small, then send as base64 to the API.

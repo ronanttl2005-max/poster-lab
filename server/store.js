@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { INSPIRATIONS } from "../data/inspirations.js";
 import { STYLES } from "../data/styles.js";
+import { FOLDERS } from "../data/folders.js";
 import { TEMPLATES } from "../js/templates.js";
 
 const serverDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -17,7 +18,7 @@ const seedData = {
   styles: STYLES,
   inspirations: INSPIRATIONS,
   templates: templateMetadata,
-  folders: [],
+  folders: FOLDERS,
 };
 
 const clone = (value) => JSON.parse(JSON.stringify(value));

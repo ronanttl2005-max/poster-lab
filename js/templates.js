@@ -137,61 +137,162 @@ export const TEMPLATES = [
     id: "pop-deadline",
     name: "波普撞色征集",
     styleId: "pop-clash",
-    desc: "Hiiibrand 式纯色大底 + 瓶盖物件 + 双语清单",
+    desc: "高饱和纯色大底 + 主体物件 + 双语清单。主体形状可选，也可以直接上传任意物体",
     recommend: "小红书 3:4 / 朋友圈海报 · 高饱和底色在手机小图下依然醒目",
     presets: [
       {
         id: "hiiibrand-blue-deadlines", name: "复刻 · 蓝底瓶盖清单", ref: "07-hiiibrand-caps-blue-orange.png",
         values: {
           bg: "#55C3F0",
-          capColor: "#C9702F",
+          barColor: "#C9702F",
+          barText: "HIIIBRAND AWARDS 2025 · CALL FOR ENTRIES",
+          shape: "cap",
+          objColor: "#C9702F",
           titleCn: "Hiiibrand 国际设计奖 · 征集中",
           titleEn: "HIIIBRAND AWARDS OPEN CALL",
           lines: "超级早鸟 2025.8.31|Super-Early-Bird Entry Deadline\n早鸟提交 2025.9.30|Early-Bird Entry Deadline\n常规提交 2025.10.31|Regular Entry Deadline",
+          body: "面向全球华人设计师与设计机构，征集品牌、包装、字体与数字媒体作品。所有入围作品收录于年鉴并参与巡回展出。",
+          foot: "hiiibrand.com|投稿邮箱 award@hiiibrand.com",
           ink: "#FFFFFF",
+          layout: "single",
         },
       },
       {
         id: "hiiibrand-orange-jury", name: "复刻 · 橙底评审页", ref: "07-hiiibrand-caps-blue-orange.png",
         values: {
           bg: "#F8A303",
-          capColor: "#6C86D6",
+          barColor: "#231A0E",
+          barText: "JURY 2025 · WHY DESIGN MATTERS",
+          shape: "circle",
+          objColor: "#6C86D6",
           titleCn: "黛比 · 米尔曼",
           titleEn: "DEBBIE MILLMAN",
           lines: "评审委员会主席|Jury President\n设计为何重要|Why Design Matters\nAIGA 终身成就奖|AIGA Lifetime Achievement",
+          body: "《Design Matters》主播，全球最早的设计播客之一。她与超过五百位创作者对谈，把设计从职业话题谈成生活方式。",
+          foot: "评审名单陆续公布|Jury announced in waves",
           ink: "#231A0E",
+          layout: "two",
         },
       },
     ],
     fields: [
       { key: "bg", label: "底色", type: "color", default: "#37C0F0" },
-      { key: "capColor", label: "瓶盖色", type: "color", default: "#C9702F" },
+      { key: "ink", label: "文字色", type: "color", default: "#FFFFFF" },
+      { key: "barColor", label: "顶部色条颜色", type: "color", default: "#C9702F" },
+      { key: "barText", label: "顶部色条文字", type: "text", default: "POSTER LAB 2026 · CALL FOR ENTRIES" },
+      { key: "barH", label: "色条高度", type: "range", default: "34", min: 0, max: 90 },
+      {
+        key: "shape", label: "主体形状", type: "select", default: "cap",
+        options: [
+          { value: "cap", label: "瓶盖（点线圈）" },
+          { value: "circle", label: "纯圆色块" },
+          { value: "blob", label: "有机形" },
+          { value: "image", label: "上传图片主体" },
+        ],
+      },
+      { key: "objColor", label: "主体色（形状为图片时不生效）", type: "color", default: "#C9702F" },
+      // 形状选「上传图片主体」时才用得上。深度模式走 pop-sticker：抠主体 + 提饱和 + 多层描边
+      { key: "objImage", label: "主体图片（形状选「上传图片主体」时生效）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "fxLayers", label: "描边层数（深度模式）", type: "range", default: "3", min: 1, max: 5 },
+      { key: "fxGap", label: "描边间距（深度模式）", type: "range", default: "10", min: 3, max: 40 },
+      { key: "objSize", label: "主体大小", type: "range", default: "300", min: 140, max: 440 },
+      { key: "objRotate", label: "主体旋转", type: "range", default: "-8", min: -30, max: 30 },
       { key: "titleCn", label: "中文标题", type: "text", default: "海报实验室 · 征集中" },
       { key: "titleEn", label: "英文标题", type: "text", default: "POSTER LAB OPEN CALL" },
       {
         key: "lines", label: "清单（每行：中文|英文）", type: "textarea",
         default: "超级早鸟 2026.8.31|Super-Early-Bird Deadline\n早鸟提交 2026.9.30|Early-Bird Deadline\n常规提交 2026.10.31|Regular Deadline",
       },
-      { key: "ink", label: "文字色", type: "color", default: "#FFFFFF" },
+      {
+        key: "layout", label: "版式", type: "select", default: "single",
+        options: [
+          { value: "single", label: "单栏（清单撑满）" },
+          { value: "two", label: "左右双栏（清单 + 正文）" },
+        ],
+      },
+      {
+        key: "body", label: "正文段落", type: "textarea",
+        default: "面向全球创作者征集平面、影像与实验性作品。所有入围作品收录于线上年鉴，并参与年度巡回展出。",
+      },
+      { key: "photo", label: "附图（双栏版式下显示在右栏）", type: "image", default: "" },
+      { key: "foot", label: "脚注（用 | 分左右）", type: "text", default: "posterlab.studio|投稿邮箱 open@posterlab.studio" },
     ],
     render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const barH = lim(num(v.barH, 34), 0, 90);
+      const rot = lim(num(v.objRotate, -8), -30, 30);
+      const two = v.layout === "two";
+      const deep = v.imgMode === "deep";
+      const objTop = barH + 46;
+
+      // 主体尺寸让位给下面的文字栏：色条 + 主体 + 标题组 + 清单 + 正文 + 脚注
+      // 必须塞进 1000px。行数多或者色条拉高时，主体自动缩小而不是把文字顶出画布。
+      const rowCount = (v.lines || "").split("\n").filter(Boolean).length;
+      const textH = 48 + 4 + 22 + (two ? 26 : 36)
+        + rowCount * (two ? 66 : 76)
+        + (two ? 0 : 60)
+        + 54; // 脚注区
+      const size = lim(num(v.objSize, 300), 140, Math.max(140, 1000 - objTop - 44 - textH));
+
+      // 形状选了图片但还没上传，退回瓶盖，免得预览开个天窗
+      const shape = v.shape === "image" && !v.objImage ? "cap" : v.shape || "cap";
+      const spin = `position:absolute;top:${objTop}px;left:50%;transform:translateX(-50%) rotate(${rot}deg);width:${size}px;height:${size}px;`;
+
+      let object = "";
+      if (shape === "cap") {
+        object = `
+          <div style="${spin}border-radius:50%;background:${v.objColor};border:${Math.round(size * 0.053)}px dotted rgba(0,0,0,.28);box-shadow:0 22px 0 rgba(0,0,0,.18);"></div>
+          <div style="position:absolute;top:${objTop + Math.round(size * 0.25)}px;left:50%;transform:translateX(-50%) rotate(${rot}deg);width:${Math.round(size * 0.5)}px;height:${Math.round(size * 0.15)}px;border-radius:50%;background:rgba(255,255,255,.30);"></div>`;
+      } else if (shape === "circle") {
+        object = `<div style="${spin}border-radius:50%;background:${v.objColor};box-shadow:0 22px 0 rgba(0,0,0,.16);"></div>`;
+      } else if (shape === "blob") {
+        object = `<div style="${spin}background:${v.objColor};border-radius:58% 42% 47% 53% / 46% 55% 45% 54%;box-shadow:0 20px 0 rgba(0,0,0,.16);"></div>`;
+      } else {
+        // 简单模式用 CSS 近似波普描边（多层 drop-shadow）；深度模式的图已经带描边了
+        const fake = "filter:saturate(160%) contrast(120%) drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #111);";
+        object = `<img src="${v.objImage}" style="${spin}object-fit:contain;${deep ? "" : fake}" />`;
+      }
+
       const rows = (v.lines || "")
         .split("\n").filter(Boolean)
         .map((l) => {
           const [cn, en] = l.split("|");
-          return `<div style="margin-bottom:26px;">
-            <div style="font-size:36px;font-weight:800;color:${v.ink};letter-spacing:1px;">${esc(cn || "")}</div>
-            <div style="font-family:ui-monospace,Menlo,monospace;font-size:14px;color:${v.ink};opacity:.85;">${esc(en || "")}</div>
+          return `<div style="margin-bottom:${two ? 18 : 26}px;">
+            <div style="font-size:${two ? 27 : 36}px;font-weight:800;color:${v.ink};letter-spacing:1px;line-height:1.15;">${esc(cn || "")}</div>
+            <div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:${two ? 12 : 14}px;color:${v.ink};opacity:.85;">${esc(en || "")}</div>
           </div>`;
         }).join("");
+
+      const rightCol = two
+        ? `<div style="flex:0 0 34%;">
+            ${v.photo ? `<img src="${v.photo}" style="width:100%;height:150px;object-fit:cover;display:block;margin-bottom:14px;border:3px solid ${v.ink};" />` : ""}
+            <div style="font-size:13px;line-height:1.75;color:${v.ink};opacity:.92;white-space:pre-wrap;">${esc(v.body)}</div>
+          </div>`
+        : "";
+
+      const bodyBelow = two
+        ? ""
+        : `<div style="margin-top:8px;font-size:14px;line-height:1.8;color:${v.ink};opacity:.9;max-width:560px;white-space:pre-wrap;">${esc(v.body)}</div>`;
+
+      const [footL, footR] = String(v.foot || "").split("|");
+
       return `
-      <div style="position:absolute;inset:0;background:${v.bg};">
-        <div style="position:absolute;top:95px;left:50%;transform:translateX(-50%) rotate(-8deg);width:300px;height:300px;border-radius:50%;background:${v.capColor};border:16px dotted rgba(0,0,0,.28);box-shadow:0 22px 0 rgba(0,0,0,.18);"></div>
-        <div style="position:absolute;top:170px;left:50%;transform:translateX(-50%) rotate(-8deg);width:150px;height:44px;border-radius:50%;background:rgba(255,255,255,.30);"></div>
-        <div style="position:absolute;top:490px;left:64px;right:64px;">
-          <div style="font-size:44px;font-weight:900;color:${v.ink};margin-bottom:4px;">${esc(v.titleCn)}</div>
-          <div style="font-family:ui-monospace,Menlo,monospace;font-size:16px;color:${v.ink};letter-spacing:3px;margin-bottom:44px;">${esc(v.titleEn)}</div>
-          ${rows}
+      <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
+        ${barH > 0
+          ? `<div style="position:absolute;left:0;right:0;top:0;height:${barH}px;background:${v.barColor};display:flex;align-items:center;padding:0 64px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2.5px;color:${v.bg};">${esc(v.barText)}</div>`
+          : ""}
+        ${object}
+        <div style="position:absolute;top:${objTop + size + 44}px;left:64px;right:64px;">
+          <div style="font-size:44px;font-weight:900;color:${v.ink};margin-bottom:4px;line-height:1.1;">${esc(v.titleCn)}</div>
+          <div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:16px;color:${v.ink};letter-spacing:3px;margin-bottom:${two ? 26 : 36}px;">${esc(v.titleEn)}</div>
+          <div style="display:flex;gap:28px;align-items:flex-start;">
+            <div style="flex:1;">${rows}${bodyBelow}</div>
+            ${rightCol}
+          </div>
+        </div>
+        <div style="position:absolute;bottom:40px;left:64px;right:64px;display:flex;justify-content:space-between;gap:20px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.5px;color:${v.ink};opacity:.9;">
+          <span>${esc(footL || "")}</span><span style="text-align:right;">${esc(footR || "")}</span>
         </div>
       </div>`;
     },
@@ -364,46 +465,80 @@ export const TEMPLATES = [
     id: "photo-serif",
     name: "文字即海报",
     styleId: "photo-text",
-    desc: "We removed the heart 式：失焦照片 + 白色衬线逐行推进",
-    recommend: "小红书 3:4 图文封面 · 照片选暗部多的，白字才有对比",
+    desc: "We removed the heart 式：斜向拉丝背景 + 白色大衬线逐行推进",
+    recommend: "小红书 3:4 图文封面 · 不传图也有拉丝底；传图会做双色调，白字才有对比",
     presets: [
       {
         id: "removed-heart-blue-blur", name: "复刻 · 失焦衬线独白", ref: "47-we-removed-the-heart-serif.png",
-        values: { bgBlur: "14", size: "72" },
+        values: {
+          size: "92", lineHeight: "105", align: "center", bgBlur: "16",
+          streakAngle: "158", streakBlur: "34",
+          streakA: "#1A2C4E", streakB: "#3F6CAE", streakC: "#E8A56B",
+          duoShadow: "#16233E", duoLight: "#E8A56B",
+        },
       },
     ],
     fields: [
-      { key: "image", label: "背景照片（建议模糊/情绪化）", type: "image", default: "" },
+      // fx 让「深度」模式把上传图重做成双色调印刷质感，而不是纯替换
+      { key: "image", label: "背景照片（留空则用拉丝底）", type: "image", default: "", fx: "duotone-print" },
       {
         key: "lines", label: "文字（每行 1-3 词，*词* 为斜体）", type: "textarea",
         default: "We\nremoved\n*the heart.*\nAnd\neverything\nchanged.",
       },
       { key: "font", label: "字体", type: "select", default: "serif", options: [
-        { value: "serif", label: "衬线（文艺）" },
+        { value: "serif", label: "Playfair 衬线（文艺）" },
         { value: "sans", label: "无衬线（冷静）" },
       ] },
       { key: "textColor", label: "文字颜色", type: "color", default: "#FFFFFF" },
-      { key: "size", label: "字号", type: "range", default: "68", min: 36, max: 100 },
-      { key: "bgBlur", label: "背景模糊", type: "range", default: "0", min: 0, max: 30 },
+      { key: "size", label: "字号", type: "range", default: "92", min: 36, max: 128 },
+      { key: "lineHeight", label: "行高（%）", type: "range", default: "105", min: 82, max: 160 },
+      { key: "align", label: "对齐", type: "select", default: "center", options: [
+        { value: "center", label: "居中" },
+        { value: "left", label: "左对齐" },
+        { value: "right", label: "右对齐" },
+      ] },
+      { key: "streakAngle", label: "拉丝角度", type: "range", default: "158", min: 0, max: 180 },
+      { key: "streakBlur", label: "拉丝柔化", type: "range", default: "34", min: 0, max: 80 },
+      { key: "streakA", label: "拉丝色 · 暗", type: "color", default: "#1A2C4E" },
+      { key: "streakB", label: "拉丝色 · 中", type: "color", default: "#3F6CAE" },
+      { key: "streakC", label: "拉丝色 · 亮", type: "color", default: "#E8A56B" },
+      { key: "duoShadow", label: "双色调 · 暗部", type: "color", default: "#16233E" },
+      { key: "duoLight", label: "双色调 · 亮部", type: "color", default: "#E8A56B" },
+      { key: "bgBlur", label: "照片模糊", type: "range", default: "16", min: 0, max: 40 },
     ],
     render: (v) => {
-      const ff = v.font === "sans" ? "Helvetica,Arial,sans-serif" : "Georgia,'Times New Roman',serif";
-      const bgNode = v.image
-        ? `<img src="${v.image}" style="position:absolute;inset:-30px;width:calc(100% + 60px);height:calc(100% + 60px);object-fit:cover;filter:blur(${v.bgBlur}px);" />`
-        : `<div style="position:absolute;inset:0;background:
-             radial-gradient(420px 620px at 78% 30%, #e8a56b, transparent 60%),
-             radial-gradient(700px 700px at 20% 70%, #27538f, transparent 65%),
-             radial-gradient(500px 400px at 60% 85%, #17233c, transparent 70%),
-             linear-gradient(160deg,#3f6cae,#1a2c4e);filter:blur(${Math.max(6, v.bgBlur)}px) saturate(1.2);transform:scale(1.1);"></div>`;
+      const ff = v.font === "sans"
+        ? "'Helvetica Neue',Helvetica,Arial,sans-serif"
+        : "'Playfair Display',Didot,'Bodoni MT','Times New Roman',Georgia,serif";
+      const align = v.align === "left" ? "left" : v.align === "right" ? "right" : "center";
+      const lh = (Number(v.lineHeight) || 105) / 100;
+      const deep = v.imgMode === "deep";
+
+      // 拉丝底：两组不同周期的斜向重复渐变叠在一起再整体模糊，
+      // 出来的是「照片被横向甩糊」那种连续色带，而不是规整条纹。
+      const streaks = `
+        repeating-linear-gradient(${v.streakAngle}deg,
+          ${v.streakA} 0px, ${v.streakB} 46px, ${v.streakC} 88px, ${v.streakB} 132px, ${v.streakA} 190px),
+        repeating-linear-gradient(${v.streakAngle}deg,
+          rgba(0,0,0,.34) 0px, rgba(0,0,0,0) 70px, rgba(255,255,255,.14) 150px, rgba(0,0,0,0) 240px)`;
+      const streakNode = `<div style="position:absolute;inset:0;background:${streaks};background-blend-mode:overlay;filter:blur(${v.streakBlur}px) saturate(1.15);transform:scale(1.22);"></div>`;
+
+      // 简单模式：CSS 现场近似双色调（去色后用渐变 color 混合）。
+      // 深度模式：poster-fx 已经把双色调和颗粒烧进图里了，这里不要再叠一层。
+      const photoNode = `
+        <img src="${v.image}" style="position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(${v.bgBlur}px)${deep ? "" : " grayscale(100%) contrast(112%) brightness(104%)"};" />
+        ${deep ? "" : `<div style="position:absolute;inset:0;background:linear-gradient(${v.streakAngle}deg,${v.duoShadow},${v.duoLight});mix-blend-mode:color;"></div>`}`;
+
       const lines = (v.lines || "")
         .split("\n").filter((l) => l.trim())
         .map((l) => `<div>${rich(l)}</div>`)
         .join("");
       return `
-      <div style="position:absolute;inset:0;background:#111;overflow:hidden;">
-        ${bgNode}
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-          <div style="font-family:${ff};font-size:${v.size}px;line-height:1.28;color:${v.textColor};text-align:center;font-weight:600;letter-spacing:-.5px;text-shadow:0 2px 30px rgba(0,0,0,.25);">${lines}</div>
+      <div style="position:absolute;inset:0;background:${v.streakA};overflow:hidden;">
+        ${v.image ? photoNode : streakNode}
+        <div style="position:absolute;inset:0;background:radial-gradient(680px 760px at 50% 46%, rgba(0,0,0,.14), rgba(0,0,0,.42));"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 62px;">
+          <div style="width:100%;font-family:${ff};font-size:${v.size}px;line-height:${lh};color:${v.textColor};text-align:${align};font-weight:700;letter-spacing:-1.5px;text-shadow:0 2px 34px rgba(0,0,0,.3);">${lines}</div>
         </div>
       </div>`;
     },
@@ -476,235 +611,173 @@ export const TEMPLATES = [
 
   // ------------------------------------------------------------------
   {
-    id: "vertical-type-poster",
-    name: "竖排文字海报",
-    styleId: "brutalist-type",
-    desc: "中文竖排 + 英文横排 + 侧边信息条，适合展览与活动标题",
-    recommend: "展览海报 / 书法字体类内容 · 3:4 竖版最大化竖排优势",
-    fields: [
-      { key: "title", label: "中文主标题", type: "textarea", default: "把\n空白\n留给\n想法" },
-      { key: "english", label: "英文副标题", type: "text", default: "A TYPOGRAPHIC STUDY" },
-      { key: "date", label: "日期 / 地点", type: "textarea", default: "08.19—09.06\nPOSTER LAB / SHANGHAI" },
-      { key: "note", label: "侧边说明", type: "textarea", default: "TYPE / SPACE / RHYTHM\nOPEN STUDIO 06\nFREE ENTRY" },
-      { key: "writing", label: "标题方向", type: "select", default: "vertical-rl", options: [{ value: "vertical-rl", label: "从右到左" }, { value: "vertical-lr", label: "从左到右" }] },
-      { key: "bg", label: "底色", type: "color", default: "#F4F1E8" },
-      { key: "ink", label: "主文字色", type: "color", default: "#111318" },
-      { key: "accent", label: "强调色", type: "color", default: "#E53B35" },
-    ],
-    render: (v) => `
-      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};padding:48px 54px;font-family:Helvetica,Arial,sans-serif;">
-        <div style="position:absolute;top:48px;left:54px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.accent};">POSTER LAB / TYPE 02</div>
-        <div style="position:absolute;top:48px;right:54px;writing-mode:${v.writing};height:450px;font-family:Georgia,'Songti SC',serif;font-size:92px;line-height:1.03;letter-spacing:8px;white-space:pre-wrap;">${esc(v.title)}</div>
-        <div style="position:absolute;left:70px;top:345px;width:300px;color:${v.accent};font-family:Arial Black,Arial,sans-serif;font-size:31px;line-height:1.1;letter-spacing:-1px;">${esc(v.english)}</div>
-        <div style="position:absolute;left:70px;bottom:92px;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.8;white-space:pre-wrap;">${esc(v.date)}</div>
-        <div style="position:absolute;right:54px;bottom:62px;width:240px;border-top:1px solid ${v.ink};padding-top:12px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;">${esc(v.note)}</div>
-        <div style="position:absolute;left:54px;bottom:48px;right:54px;height:3px;background:${v.accent};"></div>
-      </div>`,
-  },
-
-  // ------------------------------------------------------------------
-  {
-    id: "cmyk-overprint-type",
-    name: "CMYK 错位大字",
-    styleId: "cmyk-halftone",
-    desc: "四色分层、套印偏移和印刷参数全部可编辑的标题模板",
-    recommend: "实验字体/自我介绍页 · 3:4；偏移量别超过 8px，否则小图上糊成一团",
-    presets: [
-      {
-        id: "print-process-053", name: "复刻 · PRINT套印", ref: "53-cmyk-overprint-type.svg",
-        values: {
-          kicker: "OVERPRINT TEST · UNCOATED PAPER · PLATE 04",
-          title: "PRINT",
-          subtitle: "PROCESS / IMPERFECTION\nColor separation as a visual language.",
-          offset: "7",
-        },
-      },
-    ],
-    fields: [
-      { key: "kicker", label: "顶部小标题", type: "text", default: "PRINT / PROCESS / 03" },
-      { key: "title", label: "主标题", type: "text", default: "OVERPRINT" },
-      { key: "subtitle", label: "副标题", type: "textarea", default: "The beautiful error\nof four colors becoming one." },
-      { key: "spec", label: "底部印刷参数", type: "text", default: "C 75°  ·  M 15°  ·  Y 0°  ·  K 45°" },
-      { key: "offset", label: "套印偏移", type: "range", default: "9", min: 1, max: 20 },
-      { key: "cyan", label: "C 青色", type: "color", default: "#00AEEF" },
-      { key: "magenta", label: "M 品红", type: "color", default: "#EC008C" },
-      { key: "yellow", label: "Y 黄色", type: "color", default: "#FFF200" },
-      { key: "black", label: "K 黑色", type: "color", default: "#111318" },
-      { key: "paper", label: "纸张色", type: "color", default: "#F5F1E8" },
-    ],
-    render: (v) => {
-      const o = Number(v.offset) || 8;
-      return `
-      <div style="position:absolute;inset:0;background:${v.paper};color:${v.black};padding:54px 56px;font-family:Arial,Helvetica,sans-serif;overflow:hidden;">
-        <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:2px;">${esc(v.kicker)}</div>
-        <div style="position:absolute;top:205px;left:49px;font-family:Arial Black,Arial,sans-serif;font-size:96px;font-weight:900;letter-spacing:-7px;white-space:nowrap;line-height:1;mix-blend-mode:multiply;">
-          <span style="position:absolute;left:${-o}px;top:${-o}px;color:${v.cyan};">${esc(v.title)}</span>
-          <span style="position:absolute;left:${o}px;top:${-o / 2}px;color:${v.magenta};">${esc(v.title)}</span>
-          <span style="position:absolute;left:${-o / 2}px;top:${o}px;color:${v.yellow};">${esc(v.title)}</span>
-          <span style="position:relative;color:${v.black};">${esc(v.title)}</span>
-        </div>
-        <div style="position:absolute;top:420px;left:60px;right:60px;height:2px;background:${v.black};"></div>
-        <div style="position:absolute;top:470px;left:60px;max-width:420px;font-family:Georgia,serif;font-size:39px;line-height:1.08;white-space:pre-wrap;">${rich(v.subtitle)}</div>
-        <div style="position:absolute;bottom:58px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:end;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.5px;">
-          <span>${esc(v.spec)}</span><span>CMYK / 03</span>
-        </div>
-        <div style="position:absolute;top:740px;right:60px;display:flex;gap:5px;">${[v.cyan, v.magenta, v.yellow, v.black].map((c) => `<i style="display:block;width:32px;height:32px;background:${c};"></i>`).join("")}</div>
-      </div>`;
-    },
-  },
-
-  // ------------------------------------------------------------------
-  {
     id: "moire-title-field",
     name: "莫尔标题场",
     styleId: "moire-pattern",
-    desc: "大标题与干涉波纹叠加：颜色、频率和说明文字可调整",
-    recommend: "视觉实验类分享 · 3:4 / 1:1 均可；波纹密度在手机上看比电脑上更密，导出前缩小检查",
+    desc: "干涉波纹背景板 + 顶部色条标题 + 椭圆环：波纹、色板、环形和三栏参数全可调",
+    recommend: "视觉实验类分享 · 背景板可传图（深度模式会转成单色网点）；波纹密度在手机上比电脑上更密，导出前缩小检查",
     presets: [
       {
         id: "moire-black-wave", name: "复刻 · 黑波蓝字", ref: "51-moire-black-wave.svg",
         values: {
           title: "MOIRÉ",
+          bigTitle: "MOIRÉ",
           caption: "FREQUENCY 24/25 · ANGLE +07° / -03°\nOPTICAL INTERFERENCE · STUDY 051",
           wave: "#111318",
-          ink: "#1747D1",
+          ink: "#111318",
           bg: "#F5F3ED",
+          boardColor: "#F5F3ED",
+          blockColor: "#1747D1",
+          titleColor: "#FFFFFF",
+          ringColor: "#1747D1",
+          ringWidth: "10",
+          ringRx: "196",
+          ringRy: "196",
+          waveGap: "16",
+          angle: "7",
+          spec1: "FREQ 24/25",
+          spec2: "ANGLE +07/-03",
+          spec3: "STUDY 051",
+          footNote: "OPTICAL INTERFERENCE",
         },
       },
       {
         id: "moire-color-orbit", name: "复刻 · 彩色轨道", ref: "52-moire-color-orbit.svg",
         values: {
           title: "ORBIT",
+          bigTitle: "ORBIT",
           caption: "COLOR INTERFERENCE / 052\nAn optical field that moves while standing still.",
           wave: "#1CC5EA",
           ink: "#104BD5",
           bg: "#F7F9FB",
+          boardColor: "#EAF4FA",
+          blockColor: "#104BD5",
+          titleColor: "#FFFFFF",
+          ringColor: "#104BD5",
+          ringWidth: "14",
+          ringRx: "232",
+          ringRy: "168",
+          waveGap: "22",
           angle: "15",
+          spec1: "COLOR / 052",
+          spec2: "ANGLE +15°",
+          spec3: "ORBIT FIELD",
+          footNote: "MOVES WHILE STANDING STILL",
         },
       },
     ],
     fields: [
-      { key: "title", label: "主标题", type: "text", default: "MOIRÉ FIELD" },
-      { key: "caption", label: "说明文字", type: "textarea", default: "Two grids. One moving image.\nOptical study no. 04." },
-      { key: "wave", label: "波纹色", type: "color", default: "#1747D1" },
-      { key: "ink", label: "文字色", type: "color", default: "#111318" },
-      { key: "bg", label: "背景色", type: "color", default: "#F7F8FA" },
+      // 顶部色条 + 标题
+      { key: "title", label: "顶条标题", type: "text", default: "MOIRÉ FIELD" },
+      { key: "blockColor", label: "顶条颜色", type: "color", default: "#1747D1" },
+      { key: "titleColor", label: "顶条文字色", type: "color", default: "#FFFFFF" },
+      { key: "blockH", label: "顶条高度", type: "range", default: "128", min: 70, max: 260 },
+      // 背景板（可传图；深度模式转单色网点）
+      { key: "board", label: "背景板图片（留空则用纯色板）", type: "image", default: "", fx: "halftone-mono" },
+      // 这两个只在「深度」模式下生效：halftone-mono 靠它们决定网点颜色和粗细
+      { key: "dotColor", label: "网点颜色（深度模式）", type: "color", default: "#111318" },
+      { key: "dotSize", label: "网点大小（深度模式）", type: "range", default: "7", min: 3, max: 20 },
+      { key: "boardColor", label: "背景板底色", type: "color", default: "#F1EFE8" },
+      { key: "boardTop", label: "背景板上边", type: "range", default: "186", min: 120, max: 420 },
+      { key: "boardH", label: "背景板高度", type: "range", default: "470", min: 200, max: 640 },
+      // 干涉波纹
+      { key: "wave", label: "波纹色", type: "color", default: "#111318" },
+      { key: "waveGap", label: "波纹间距", type: "range", default: "16", min: 8, max: 40 },
+      { key: "waveWidth", label: "波纹线宽", type: "range", default: "2", min: 1, max: 6 },
       { key: "angle", label: "第二层旋转角度", type: "range", default: "7", min: -18, max: 18 },
+      // 椭圆环
+      { key: "ringColor", label: "圆环颜色", type: "color", default: "#1747D1" },
+      { key: "ringWidth", label: "圆环线宽", type: "range", default: "10", min: 0, max: 40 },
+      { key: "ringRx", label: "圆环横半径", type: "range", default: "196", min: 60, max: 340 },
+      { key: "ringRy", label: "圆环纵半径", type: "range", default: "196", min: 60, max: 300 },
+      // 底部信息区
+      { key: "spec1", label: "参数栏 · 左", type: "text", default: "FREQ 24/25" },
+      { key: "spec2", label: "参数栏 · 中", type: "text", default: "ANGLE +07/-03" },
+      { key: "spec3", label: "参数栏 · 右", type: "text", default: "STUDY 051" },
+      { key: "bigTitle", label: "底部大标题", type: "text", default: "MOIRÉ" },
+      { key: "bigSize", label: "大标题字号", type: "range", default: "96", min: 40, max: 150 },
+      { key: "caption", label: "说明文字", type: "textarea", default: "Two grids. One moving image.\nOptical study no. 04." },
+      { key: "footNote", label: "右下小字", type: "text", default: "OPTICAL INTERFERENCE" },
+      { key: "ink", label: "文字色", type: "color", default: "#111318" },
+      { key: "bg", label: "画布底色", type: "color", default: "#F7F8FA" },
     ],
     render: (v) => {
-      const parsedAngle = Number(v.angle);
-      const angle = Number.isFinite(parsedAngle) ? parsedAngle : 7;
-      const lines = Array.from({ length: 27 }, (_, i) => `<span style="display:block;height:17px;border-top:1px solid ${v.wave};transform:skewY(${Math.sin(i / 2) * 7}deg);"></span>`).join("");
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const angle = num(v.angle, 7);
+      const gap = num(v.waveGap, 16);
+      const lw = num(v.waveWidth, 2);
+      const boardTop = num(v.boardTop, 186);
+      const blockH = num(v.blockH, 128);
+      const bigSize = num(v.bigSize, 96);
+      const deep = v.imgMode === "deep";
+
+      // 底部要塞：参数栏(26) + 分隔线(48) + 大标题(60 起，占 bigSize*.94)
+      // + 说明文字（钉在 bottom:56，两行约 70）。板子高度让位给它们，
+      // 否则拉到 640 + 150 号大标题就会直接压在说明文字上。
+      const bottomReserve = 60 + bigSize * 0.94 + 70 + 56;
+      const boardMax = Math.max(200, 1000 - boardTop - bottomReserve);
+      const boardH = Math.min(Math.max(num(v.boardH, 470), 200), boardMax);
+
+      // 波纹用 SVG <pattern> 画：一格里一条正弦曲线，靠 patternUnits 平铺。
+      // 振幅压在 gap/2 之内，否则曲线会被格子裁断，接缝很明显。
+      const amp = Math.max(1, gap * 0.32);
+      const mid = gap / 2;
+      const wavePattern = (id, transform) => `
+        <pattern id="${id}" width="140" height="${gap}" patternUnits="userSpaceOnUse" patternTransform="${transform}">
+          <path d="M0 ${mid} Q 35 ${mid - amp} 70 ${mid} T 140 ${mid}" fill="none" stroke="${v.wave}" stroke-width="${lw}" />
+        </pattern>`;
+      // 两层同频波纹，只差一个小角度 —— 干涉条纹就是这么来的。
+      const moire = `
+        <svg width="750" height="${boardH}" viewBox="0 0 750 ${boardH}" style="position:absolute;left:0;top:0;">
+          <defs>
+            ${wavePattern("mf-w1", "rotate(-4)")}
+            ${wavePattern("mf-w2", `rotate(${angle}) scale(1.04)`)}
+          </defs>
+          <rect width="750" height="${boardH}" fill="url(#mf-w1)" opacity="0.92" />
+          <rect width="750" height="${boardH}" fill="url(#mf-w2)" opacity="0.6" style="mix-blend-mode:multiply;" />
+        </svg>`;
+
+      // 简单模式下靠 CSS 近似单色网点观感；深度模式的图已经是网点图，不要再压滤镜。
+      const boardImg = v.board
+        ? `<img src="${v.board}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;${deep ? "" : "filter:grayscale(100%) contrast(150%) brightness(96%);mix-blend-mode:multiply;"}" />`
+        : "";
+
+      const ringRx = num(v.ringRx, 196);
+      const ringRy = num(v.ringRy, 196);
+      const ringW = num(v.ringWidth, 10);
+      const ring = ringW > 0
+        ? `<svg width="750" height="${boardH}" viewBox="0 0 750 ${boardH}" style="position:absolute;left:0;top:0;">
+             <ellipse cx="375" cy="${boardH / 2}" rx="${ringRx}" ry="${ringRy}" fill="none" stroke="${v.ringColor}" stroke-width="${ringW}" />
+           </svg>`
+        : "";
+
+      const specCell = (text, align) =>
+        `<span style="flex:1;text-align:${align};">${esc(text)}</span>`;
+
       return `
-      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};padding:50px 52px;font-family:Helvetica,Arial,sans-serif;overflow:hidden;">
-        <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.wave};">OPTICAL INTERFERENCE / 04</div>
-        <div style="position:absolute;left:18px;right:18px;top:185px;height:490px;opacity:.9;transform:rotate(-4deg);">${lines}</div>
-        <div style="position:absolute;left:18px;right:18px;top:185px;height:490px;opacity:.58;transform:rotate(${angle}deg) scale(1.03);mix-blend-mode:multiply;">${lines}</div>
-        <div style="position:absolute;top:335px;left:50px;right:50px;background:${v.bg};padding:18px 12px 24px;border-top:2px solid ${v.wave};border-bottom:2px solid ${v.wave};">
-          <div style="font-family:Arial Black,Arial,sans-serif;font-size:64px;line-height:.98;letter-spacing:-4px;color:${v.wave};">${esc(v.title)}</div>
+      <div style="position:absolute;inset:0;background:${v.bg};color:${v.ink};font-family:Helvetica,Arial,sans-serif;overflow:hidden;">
+        <div style="position:absolute;left:0;right:0;top:0;height:${blockH}px;background:${v.blockColor};display:flex;align-items:center;padding:0 52px;">
+          <div style="font-family:Anton,'Arial Black',Impact,Arial,sans-serif;font-size:${Math.round(blockH * 0.52)}px;line-height:1;letter-spacing:-2px;color:${v.titleColor};">${esc(v.title)}</div>
         </div>
-        <div style="position:absolute;bottom:62px;left:52px;right:52px;display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;white-space:pre-wrap;color:${v.ink};"><span>${esc(v.caption)}</span><span>08 / 19 / 2026</span></div>
+
+        <div style="position:absolute;left:0;right:0;top:${boardTop}px;height:${boardH}px;background:${v.boardColor};overflow:hidden;">
+          ${boardImg}
+          ${moire}
+          ${ring}
+        </div>
+
+        <div style="position:absolute;left:52px;right:52px;top:${boardTop + boardH + 26}px;display:flex;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.5px;color:${v.ink};">
+          ${specCell(v.spec1, "left")}${specCell(v.spec2, "center")}${specCell(v.spec3, "right")}
+        </div>
+        <div style="position:absolute;left:52px;right:52px;top:${boardTop + boardH + 48}px;height:2px;background:${v.wave};"></div>
+        <div style="position:absolute;left:52px;right:52px;top:${boardTop + boardH + 60}px;font-family:Anton,'Arial Black',Impact,Arial,sans-serif;font-size:${num(v.bigSize, 96)}px;line-height:.94;letter-spacing:-4px;color:${v.ink};">${esc(v.bigTitle)}</div>
+
+        <div style="position:absolute;bottom:56px;left:52px;right:52px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7;color:${v.ink};">
+          <span style="white-space:pre-wrap;">${esc(v.caption)}</span>
+          <span style="text-align:right;letter-spacing:1.5px;">${esc(v.footNote)}</span>
+        </div>
       </div>`;
     },
-  },
-
-  // ------------------------------------------------------------------
-  {
-    id: "cyanotype-archive",
-    name: "蓝晒档案页",
-    styleId: "cyanotype",
-    desc: "负片图形占位 + 档案信息排版，适合植物、建筑和收藏记录",
-    recommend: "收藏记录 / 系列内页 · 3:4 竖版；同系列多张时固定纸张色和蓝色，只换主体",
-    presets: [
-      {
-        id: "botanical-specimen-049", name: "复刻 · 植物档案", ref: "49-cyanotype-botanical-archive.svg",
-        values: {
-          title: "SPECIMEN / 049",
-          subject: "BOTANICAL",
-          details: "SUN EXPOSURE · 18 MIN\nCOLLECTED 2026.08.19\n39°54'26.7\"N 116°23'32.1\"E\nCYANOTYPE ARCHIVE",
-          negative: "#EDF2E8",
-        },
-      },
-      {
-        id: "type-study-cyan", name: "复刻 · 文字曝光", ref: "50-cyanotype-type-study.svg",
-        values: {
-          title: "SUN PRINT / TYPE STUDY 02",
-          subject: "CYANOTYPE",
-          details: "PAPER: COTTON 300G · UV 5 · WASH 08:40\nPRUSSIAN BLUE / NEGATIVE SPACE",
-          paper: "#F5F0E5",
-        },
-      },
-    ],
-    fields: [
-      { key: "title", label: "档案标题", type: "text", default: "SUN PRINT / SPECIMEN" },
-      { key: "subject", label: "主体词", type: "text", default: "LEAF STUDY" },
-      { key: "details", label: "档案信息（每行一条）", type: "textarea", default: "COLLECTED 08.19.2026\nEXPOSURE 18 MINUTES\nPAPER COTTON 300G\nLOCATION 39°54'N 116°23'E" },
-      { key: "blue", label: "蓝晒色", type: "color", default: "#06477F" },
-      { key: "paper", label: "纸张色", type: "color", default: "#F3EFE3" },
-      { key: "negative", label: "负片色", type: "color", default: "#E7F0EC" },
-    ],
-    render: (v) => `
-      <div style="position:absolute;inset:0;background:${v.paper};padding:48px 54px;color:${v.blue};font-family:Helvetica,Arial,sans-serif;">
-        <div style="position:absolute;top:54px;left:54px;right:54px;bottom:150px;background:${v.blue};overflow:hidden;">
-          <div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 40%,rgba(255,255,255,.09),transparent 48%);"></div>
-          <div style="position:absolute;left:50%;top:49%;width:470px;height:600px;transform:translate(-50%,-50%) rotate(-12deg);border-left:7px solid ${v.negative};border-radius:55% 45% 48% 52%;opacity:.92;"></div>
-          <div style="position:absolute;left:47%;top:47%;width:220px;height:430px;transform:translate(-50%,-50%) rotate(-12deg);border-left:5px solid ${v.negative};border-radius:50%;opacity:.85;"></div>
-          <div style="position:absolute;left:40%;top:40%;width:285px;height:300px;transform:rotate(-38deg);border-top:4px solid ${v.negative};border-radius:50%;box-shadow:90px 76px 0 -30px ${v.negative},140px 145px 0 -52px ${v.negative},205px 190px 0 -58px ${v.negative};opacity:.85;"></div>
-          <div style="position:absolute;left:42px;top:42px;color:${v.negative};font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;">${esc(v.title)}</div>
-          <div style="position:absolute;left:42px;bottom:40px;color:${v.negative};font-family:Georgia,serif;font-size:54px;line-height:.95;">${esc(v.subject)}</div>
-        </div>
-        <div style="position:absolute;left:54px;right:54px;bottom:34px;display:flex;justify-content:space-between;align-items:flex-end;font-family:ui-monospace,Menlo,monospace;font-size:10px;line-height:1.65;white-space:pre-wrap;"><span>${esc(v.details)}</span><span>ARCHIVE 055</span></div>
-      </div>`,
-  },
-
-  // ------------------------------------------------------------------
-  {
-    id: "hydro-quote",
-    name: "水核短句海报",
-    styleId: "hydro-core",
-    desc: "透明水滴、柔和焦散和短句文字，可编辑标题与信息层级",
-    recommend: "短句/心情类内容 · 小红书 3:4；短句两行以内效果最好",
-    presets: [
-      {
-        id: "glass-drop-hydro", name: "复刻 · 玻璃水滴", ref: "55-hydro-glass-drop.svg",
-        values: {
-          quote: "HYDRO",
-          author: "AQUA MATERIAL / STUDY 055",
-          meta: "CLEAR FORM · LIQUID LIGHT · BLUE SILENCE",
-          bubble: "#41B8E3",
-          size: "96",
-        },
-      },
-      {
-        id: "caustic-soft-machine", name: "复刻 · 水面短句", ref: "56-hydro-caustic-grid.svg",
-        values: {
-          quote: "WATER IS\nA SOFT\nMACHINE\nFOR LIGHT.",
-          meta: "THE GRID STAYS STILL. THE WATER CHANGES HOW WE READ IT.",
-          bg: "#BCECFF",
-          ink: "#0C5791",
-          bubble: "#399FCE",
-          size: "64",
-        },
-      },
-    ],
-    fields: [
-      { key: "quote", label: "主句（支持 *斜体*）", type: "textarea", default: "Water makes\nlight visible." },
-      { key: "author", label: "署名 / 说明", type: "text", default: "HYDRO-CORE / TEXT REFRACTION" },
-      { key: "meta", label: "底部元数据", type: "text", default: "CLEAR FORM · LIQUID LIGHT · 2026" },
-      { key: "bg", label: "背景色", type: "color", default: "#D8F3FF" },
-      { key: "ink", label: "文字色", type: "color", default: "#0B3D91" },
-      { key: "bubble", label: "气泡色", type: "color", default: "#77D7F5" },
-      { key: "size", label: "短句字号", type: "range", default: "82", min: 46, max: 120 },
-    ],
-    render: (v) => `
-      <div style="position:absolute;inset:0;background:linear-gradient(145deg,#f8fdff,${v.bg});color:${v.ink};overflow:hidden;font-family:Helvetica,Arial,sans-serif;">
-        <div style="position:absolute;width:570px;height:570px;left:90px;top:205px;border-radius:54% 46% 52% 48%;background:radial-gradient(circle at 31% 20%,rgba(255,255,255,.96),rgba(255,255,255,.18) 25%,${v.bubble}55 58%,${v.ink}33 100%);box-shadow:inset 18px 10px 35px rgba(255,255,255,.6),inset -22px -30px 44px rgba(11,61,145,.15),0 32px 50px rgba(26,117,169,.18);transform:rotate(-11deg);"></div>
-        <div style="position:absolute;width:116px;height:116px;left:82px;top:143px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,${v.bubble}66 62%,${v.ink}33);box-shadow:0 14px 26px rgba(26,117,169,.16);"></div>
-        <div style="position:absolute;width:70px;height:70px;right:92px;bottom:228px;border-radius:50%;background:radial-gradient(circle at 30% 22%,#fff,${v.bubble}66 62%,${v.ink}33);"></div>
-        <div style="position:absolute;top:58px;left:58px;right:58px;display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:1.7px;"><span>${esc(v.author)}</span><span>HYDRO / 06</span></div>
-        <div style="position:absolute;top:365px;left:66px;right:66px;font-family:Georgia,serif;font-size:${v.size}px;line-height:1.03;letter-spacing:-3px;white-space:pre-wrap;text-shadow:0 2px 18px rgba(255,255,255,.55);">${rich(v.quote)}</div>
-        <div style="position:absolute;bottom:52px;left:58px;right:58px;border-top:1px solid ${v.ink}66;padding-top:13px;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:1.6px;">${esc(v.meta)}</div>
-      </div>`,
   },
 
   // ------------------------------------------------------------------
@@ -817,6 +890,712 @@ export const TEMPLATES = [
       <div style="position:absolute;inset:0;background:${v.bg};">
         ${photos}
         ${v.caption ? `<div style="position:absolute;bottom:26px;right:${m}px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:#B9BFC6;">${esc(v.caption)}</div>` : ""}
+      </div>`;
+    },
+  },
+  // ------------------------------------------------------------------
+  {
+    id: "halftone-editorial",
+    name: "暗调半调大标题",
+    styleId: "minimal-editorial",
+    desc: "深色底 + 单色网点图 + 超大衬线标题。深度模式下上传图会被压成网点，和底色融成一片",
+    recommend: "杂志封面 / 专题首图 · 暗调在手机深色列表里最抢眼",
+    presets: [
+      {
+        id: "adventures-first",
+        name: "复刻 · THE ADVENTURES FIRST",
+        ref: "30-adventures-first-dark-halftone.png",
+        values: {
+          bg: "#0E0F12",
+          ink: "#F2EFE6",
+          dotColor: "#F2EFE6",
+          dotSize: "7",
+          glow: "#3A4B6B",
+          glowSize: "62",
+          kicker: "ISSUE 04 · NIGHT NOTES",
+          title: "THE\nADVENTURES\nFIRST",
+          bigSize: "92",
+          imgH: "380",
+          sub: "写给所有还没出发的人：先上路，路会自己长出来。",
+          meta: "POSTER LAB|2026 AUTUMN",
+        },
+      },
+    ],
+    fields: [
+      { key: "bg", label: "底色", type: "color", default: "#0E0F12" },
+      { key: "ink", label: "文字色", type: "color", default: "#F2EFE6" },
+      { key: "kicker", label: "顶部小标（栏目号）", type: "text", default: "ISSUE 04 · NIGHT NOTES" },
+      // fx 走 halftone-mono：整幅反相后打点，底色直接取 bg，输出贴回来看不出接缝
+      { key: "image", label: "主图（深度模式转网点）", type: "image", default: "", fx: "halftone-mono" },
+      { key: "imgH", label: "主图高度", type: "range", default: "380", min: 200, max: 560 },
+      { key: "dotColor", label: "网点颜色（深度模式）", type: "color", default: "#F2EFE6" },
+      { key: "dotSize", label: "网点大小（深度模式）", type: "range", default: "7", min: 3, max: 20 },
+      { key: "glow", label: "光晕颜色", type: "color", default: "#3A4B6B" },
+      { key: "glowSize", label: "光晕强度", type: "range", default: "62", min: 0, max: 100 },
+      { key: "title", label: "大标题（换行分行）", type: "textarea", default: "THE\nADVENTURES\nFIRST" },
+      { key: "bigSize", label: "大标题字号", type: "range", default: "92", min: 48, max: 140 },
+      { key: "sub", label: "副文案", type: "textarea", default: "写给所有还没出发的人：先上路，路会自己长出来。" },
+      { key: "meta", label: "页脚（用 | 分左右）", type: "text", default: "POSTER LAB|2026 AUTUMN" },
+    ],
+    render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const deep = v.imgMode === "deep";
+      const bigSize = lim(num(v.bigSize, 92), 48, 140);
+      const glowSize = lim(num(v.glowSize, 62), 0, 100);
+      const imgTop = 116;
+
+      const titleLines = String(v.title || "").split("\n").filter(Boolean);
+      // 标题 + 副文案 + 页脚要占的高度先算出来，主图只能用剩下的空间，
+      // 否则 140 号标题配 560 高的图会把页脚顶出画布。
+      const textH = Math.max(1, titleLines.length) * bigSize * 1.0
+        + (v.sub ? 62 : 0)
+        + 92;
+      const imgH = lim(num(v.imgH, 380), 180, Math.max(180, 1000 - imgTop - textH - 24));
+
+      // 简单模式靠 CSS 近似：灰度 + 硬对比，混色模式让暗部吃掉底色
+      const fake = "filter:grayscale(100%) contrast(150%) brightness(94%);mix-blend-mode:screen;opacity:.86;";
+      const [metaL, metaR] = String(v.meta || "").split("|");
+
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
+        ${glowSize > 0
+          ? `<div style="position:absolute;left:50%;top:${imgTop + imgH * 0.35}px;transform:translate(-50%,-50%);width:${620}px;height:${620}px;border-radius:50%;background:radial-gradient(circle,${v.glow} 0%,rgba(0,0,0,0) 70%);opacity:${(glowSize / 100).toFixed(2)};"></div>`
+          : ""}
+        <div style="position:absolute;top:52px;left:64px;right:64px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:3px;color:${v.ink};opacity:.7;">
+          <span>${esc(v.kicker)}</span><span>3 : 4</span>
+        </div>
+        ${v.image
+          ? `<img src="${v.image}" style="position:absolute;left:64px;top:${imgTop}px;width:622px;height:${imgH}px;object-fit:cover;${deep ? "" : fake}" />`
+          : `<div style="position:absolute;left:64px;top:${imgTop}px;width:622px;height:${imgH}px;border:1px dashed ${v.ink};opacity:.28;"></div>`}
+        <div style="position:absolute;left:64px;right:64px;top:${imgTop + imgH + 26}px;">
+          <div style="font-family:'Playfair Display',Georgia,'Songti SC',serif;font-size:${bigSize}px;font-weight:700;line-height:1.0;letter-spacing:-1px;color:${v.ink};">${titleLines
+            .map((l) => `<div>${rich(l)}</div>`)
+            .join("")}</div>
+          ${v.sub
+            ? `<div style="margin-top:18px;font-size:15px;line-height:1.8;color:${v.ink};opacity:.72;max-width:520px;white-space:pre-wrap;">${esc(v.sub)}</div>`
+            : ""}
+        </div>
+        <div style="position:absolute;bottom:44px;left:64px;right:64px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.ink};opacity:.6;">
+          <span>${esc(metaL || "")}</span><span>${esc(metaR || "")}</span>
+        </div>
+      </div>`;
+    },
+  },
+  // ------------------------------------------------------------------
+  {
+    id: "blueprint-spec",
+    name: "工业蓝图参数页",
+    styleId: "swiss-grid",
+    desc: "蓝图网格 + 淡蓝叠印主体 + 参数卡片。网格密度、配色、参数条目都可改",
+    recommend: "产品说明 / 技术型内容 · 网格底给人「有据可依」的观感",
+    presets: [
+      {
+        id: "shutoff-industrial",
+        name: "复刻 · SHUTOFF 工业页",
+        ref: "28-shutoff-industrial-01.png",
+        values: {
+          bg: "#0B1B33",
+          gridColor: "#2C4A70",
+          ink: "#DCE8FA",
+          accent: "#7FA8E8",
+          gridSize: "36",
+          code: "SPEC / 01 — VALVE ASSEMBLY",
+          title: "SHUTOFF",
+          titleEn: "PRECISION FLOW CONTROL",
+          specs: "口径|DN 50\n压力|PN 16\n材质|SS 316L\n温区|-20 ~ 180 ℃",
+          showSpecCards: "yes",
+          foot: "POSTER LAB INDUSTRIAL|DOC 2026-08",
+        },
+      },
+      {
+        id: "shutoff-blueprint-grid",
+        name: "复刻 · 蓝图网格页",
+        ref: "31-shutoff-blueprint-grid-02.png",
+        values: {
+          bg: "#08121F",
+          gridColor: "#1E3A5F",
+          ink: "#E6F0FF",
+          accent: "#7FA8E8",
+          gridSize: "24",
+          code: "DRAWING / A2 — ISO 128",
+          title: "BLUEPRINT",
+          titleEn: "TECHNICAL DRAWING SERIES",
+          specs: "比例|1 : 20\n投影|第一象限\n单位|mm\n版本|Rev. C",
+          showSpecCards: "yes",
+          foot: "ARCHIVE 002|CONFIDENTIAL",
+        },
+      },
+    ],
+    fields: [
+      { key: "bg", label: "底色", type: "color", default: "#0B1B33" },
+      { key: "gridColor", label: "网格颜色（也是深度模式染色）", type: "color", default: "#1E3A5F" },
+      { key: "gridSize", label: "网格密度", type: "range", default: "36", min: 12, max: 90 },
+      { key: "ink", label: "文字色", type: "color", default: "#DCE8FA" },
+      { key: "accent", label: "强调色", type: "color", default: "#7FA8E8" },
+      { key: "code", label: "顶部编号行", type: "text", default: "SPEC / 01 — VALVE ASSEMBLY" },
+      // fx 走 blueprint-ghost：抠主体 + 提亮压饱和 + 用 gridColor 淡淡染一层
+      { key: "image", label: "主体图（深度模式转蓝图幽灵）", type: "image", default: "", fx: "blueprint-ghost" },
+      { key: "imgH", label: "主体高度", type: "range", default: "360", min: 180, max: 520 },
+      { key: "title", label: "大标题", type: "text", default: "SHUTOFF" },
+      { key: "titleEn", label: "副标题", type: "text", default: "PRECISION FLOW CONTROL" },
+      { key: "specs", label: "参数（每行：名称|数值）", type: "textarea", default: "口径|DN 50\n压力|PN 16\n材质|SS 316L\n温区|-20 ~ 180 ℃" },
+      {
+        key: "showSpecCards",
+        label: "参数显示方式",
+        type: "select",
+        default: "yes",
+        options: [
+          { value: "yes", label: "卡片网格" },
+          { value: "no", label: "紧凑列表" },
+        ],
+      },
+      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "POSTER LAB INDUSTRIAL|DOC 2026-08" },
+    ],
+    render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const deep = v.imgMode === "deep";
+      const g = lim(num(v.gridSize, 36), 12, 90);
+      const cards = v.showSpecCards !== "no";
+      const rows = String(v.specs || "").split("\n").filter(Boolean).map((l) => l.split("|"));
+
+      const imgTop = 208;
+      // 参数区高度：卡片是两列，列表是单列
+      const specH = cards ? Math.ceil(rows.length / 2) * 78 : rows.length * 34;
+      const imgH = lim(num(v.imgH, 360), 160, Math.max(160, 1000 - imgTop - specH - 130));
+
+      const fake = "filter:grayscale(100%) brightness(128%) contrast(112%);opacity:.72;";
+      const [footL, footR] = String(v.foot || "").split("|");
+
+      const specBlock = cards
+        ? `<div style="display:flex;flex-wrap:wrap;gap:14px;">${rows
+            .map(
+              ([k, val]) => `<div style="flex:1 1 calc(50% - 14px);min-width:0;border:1px solid ${v.gridColor};padding:14px 16px;background:rgba(255,255,255,.03);">
+                <div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:2px;color:${v.accent};margin-bottom:6px;">${esc(k || "")}</div>
+                <div style="font-size:20px;font-weight:700;color:${v.ink};">${esc(val || "")}</div>
+              </div>`
+            )
+            .join("")}</div>`
+        : `<div>${rows
+            .map(
+              ([k, val]) => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid ${v.gridColor};padding:7px 0;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:13px;color:${v.ink};">
+                <span style="opacity:.7;">${esc(k || "")}</span><span style="font-weight:700;">${esc(val || "")}</span>
+              </div>`
+            )
+            .join("")}</div>`;
+
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(${v.gridColor} 1px,transparent 1px),linear-gradient(90deg,${v.gridColor} 1px,transparent 1px);background-size:${g}px ${g}px;opacity:.55;"></div>
+        <div style="position:absolute;left:56px;right:56px;top:52px;display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2.5px;color:${v.accent};">
+          <span>${esc(v.code)}</span><span style="border:1px solid ${v.accent};padding:3px 8px;">750 × 1000</span>
+        </div>
+        <div style="position:absolute;left:56px;right:56px;top:96px;">
+          <div style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:76px;line-height:.92;letter-spacing:1px;color:${v.ink};">${esc(v.title)}</div>
+          <div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:4px;color:${v.accent};margin-top:8px;">${esc(v.titleEn)}</div>
+        </div>
+        ${v.image
+          ? `<img src="${v.image}" style="position:absolute;left:50%;transform:translateX(-50%);top:${imgTop}px;width:520px;height:${imgH}px;object-fit:contain;${deep ? "" : fake}" />`
+          : `<div style="position:absolute;left:50%;transform:translateX(-50%);top:${imgTop}px;width:520px;height:${imgH}px;border:1px dashed ${v.accent};opacity:.35;"></div>`}
+        <div style="position:absolute;left:56px;right:56px;top:${imgTop + imgH + 22}px;">${specBlock}</div>
+        <div style="position:absolute;bottom:40px;left:56px;right:56px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:2px;color:${v.ink};opacity:.6;">
+          <span>${esc(footL || "")}</span><span>${esc(footR || "")}</span>
+        </div>
+      </div>`;
+    },
+  },
+  // ------------------------------------------------------------------
+  {
+    id: "road-slogan",
+    name: "公路标语大字",
+    styleId: "brutalist-type",
+    desc: "上图下色块，色块里压超大标语。分割比例可拖，图和文案全可换",
+    recommend: "品牌宣言 / 活动主视觉 · 大字在缩略图下也读得清",
+    presets: [
+      {
+        id: "node66-road-red",
+        name: "复刻 · 66 号公路红",
+        ref: "37-node66-road-red-pair.png",
+        values: {
+          bg: "#C8102E",
+          ink: "#FFF6EE",
+          splitRatio: "52",
+          tag: "NODE 66",
+          slogan: "路在脚下\n答案在远处",
+          sloganSize: "84",
+          sub: "THE ROAD IS THE ANSWER",
+          foot: "posterlab.studio|2026",
+        },
+      },
+    ],
+    fields: [
+      { key: "bg", label: "色块底色", type: "color", default: "#C8102E" },
+      { key: "ink", label: "文字色", type: "color", default: "#FFF6EE" },
+      { key: "photo", label: "上方照片", type: "image", default: "" },
+      { key: "splitRatio", label: "照片占比 %", type: "range", default: "52", min: 25, max: 72 },
+      { key: "tag", label: "角标", type: "text", default: "NODE 66" },
+      { key: "slogan", label: "标语（换行分行）", type: "textarea", default: "路在脚下\n答案在远处" },
+      { key: "sloganSize", label: "标语字号", type: "range", default: "84", min: 44, max: 130 },
+      { key: "sub", label: "英文副标", type: "text", default: "THE ROAD IS THE ANSWER" },
+      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "posterlab.studio|2026" },
+    ],
+    render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const lines = String(v.slogan || "").split("\n").filter(Boolean);
+      const size = lim(num(v.sloganSize, 84), 44, 130);
+
+      // 色块要装下标语 + 副标 + 页脚，所以照片占比反过来受标语字号约束
+      const needH = Math.max(1, lines.length) * size * 1.04 + (v.sub ? 44 : 0) + 96 + 56;
+      const maxRatio = Math.max(25, Math.floor(((1000 - needH) / 1000) * 100));
+      const ratio = lim(num(v.splitRatio, 52), 25, Math.min(72, maxRatio));
+      const photoH = Math.round((ratio / 100) * 1000);
+      const [footL, footR] = String(v.foot || "").split("|");
+
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
+        ${v.photo
+          ? `<img src="${v.photo}" style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;object-fit:cover;display:block;" />`
+          : `<div style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;background:#1A1C20;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:3px;color:#6B7280;">UPLOAD PHOTO</div>`}
+        ${v.tag
+          ? `<div style="position:absolute;left:48px;top:${photoH - 22}px;background:${v.bg};color:${v.ink};font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:3px;padding:9px 16px;">${esc(v.tag)}</div>`
+          : ""}
+        <div style="position:absolute;left:48px;right:48px;top:${photoH + 56}px;">
+          <div style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:${size}px;line-height:1.02;letter-spacing:1px;color:${v.ink};">${lines
+            .map((l) => `<div>${rich(l)}</div>`)
+            .join("")}</div>
+          ${v.sub
+            ? `<div style="margin-top:16px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:13px;letter-spacing:4px;color:${v.ink};opacity:.78;">${esc(v.sub)}</div>`
+            : ""}
+        </div>
+        <div style="position:absolute;bottom:38px;left:48px;right:48px;display:flex;justify-content:space-between;border-top:2px solid ${v.ink};padding-top:12px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.ink};">
+          <span>${esc(footL || "")}</span><span>${esc(footR || "")}</span>
+        </div>
+      </div>`;
+    },
+  },
+  // ------------------------------------------------------------------
+  {
+    id: "data-bar-photo",
+    name: "满幅照片数据条",
+    styleId: "brutalist-type",
+    desc: "整幅照片压暗，中间横一条数据栏。数据条位置、颜色、条目都能改",
+    recommend: "团队介绍 / 年度回顾 · 数字放在照片上比单独列表更有说服力",
+    presets: [
+      {
+        id: "node66-about-us",
+        name: "复刻 · ABOUT US 山景",
+        ref: "40-node66-about-us-mountain.png",
+        values: {
+          bg: "#101418",
+          barY: "620",
+          barColor: "#C8102E",
+          ink: "#FFF6EE",
+          shade: "38",
+          kicker: "ABOUT US",
+          title: "我们在路上\n已经六年",
+          stats: "6|年\n128|站点\n42|城市",
+          body: "从一辆改装面包车开始，我们沿着国道记录沿途的店、人和天气。",
+          foot: "NODE 66 STUDIO|since 2020",
+        },
+      },
+    ],
+    fields: [
+      { key: "bg", label: "兜底底色", type: "color", default: "#101418" },
+      { key: "photo", label: "满幅照片", type: "image", default: "" },
+      { key: "shade", label: "照片压暗程度", type: "range", default: "38", min: 0, max: 80 },
+      { key: "barY", label: "数据条位置", type: "range", default: "620", min: 220, max: 780 },
+      { key: "barColor", label: "数据条颜色", type: "color", default: "#C8102E" },
+      { key: "ink", label: "文字色", type: "color", default: "#FFF6EE" },
+      { key: "kicker", label: "顶部小标", type: "text", default: "ABOUT US" },
+      { key: "title", label: "标题（换行分行）", type: "textarea", default: "我们在路上\n已经六年" },
+      { key: "titleSize", label: "标题字号", type: "range", default: "58", min: 32, max: 96 },
+      { key: "stats", label: "数据（每行：数值|单位）", type: "textarea", default: "6|年\n128|站点\n42|城市" },
+      { key: "body", label: "正文", type: "textarea", default: "从一辆改装面包车开始，我们沿着国道记录沿途的店、人和天气。" },
+      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "NODE 66 STUDIO|since 2020" },
+    ],
+    render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const titleSize = lim(num(v.titleSize, 58), 32, 96);
+      const titleLines = String(v.title || "").split("\n").filter(Boolean);
+      const shade = lim(num(v.shade, 38), 0, 80) / 100;
+      const barH = 96;
+
+      // 数据条下面还要放标题和正文，条子不能贴到底
+      const belowH = Math.max(1, titleLines.length) * titleSize * 1.1 + (v.body ? 62 : 0) + 92;
+      const barY = lim(num(v.barY, 620), 200, Math.max(200, 1000 - barH - belowH));
+      const stats = String(v.stats || "").split("\n").filter(Boolean).map((l) => l.split("|"));
+      const [footL, footR] = String(v.foot || "").split("|");
+
+      return `
+      <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
+        ${v.photo ? `<img src="${v.photo}" style="position:absolute;inset:0;width:750px;height:1000px;object-fit:cover;display:block;" />` : ""}
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,${(shade * 1.1).toFixed(2)}) 0%,rgba(0,0,0,${(shade * 0.5).toFixed(2)}) 45%,rgba(0,0,0,${(shade * 1.4).toFixed(2)}) 100%);"></div>
+        <div style="position:absolute;top:52px;left:52px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:5px;color:${v.ink};opacity:.85;">${esc(v.kicker)}</div>
+        <div style="position:absolute;left:0;right:0;top:${barY}px;height:${barH}px;background:${v.barColor};display:flex;align-items:center;justify-content:space-around;padding:0 40px;">
+          ${stats
+            .map(
+              ([n, unit]) => `<div style="text-align:center;color:${v.ink};">
+                <span style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:40px;line-height:1;">${esc(n || "")}</span>
+                <span style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;margin-left:5px;opacity:.9;">${esc(unit || "")}</span>
+              </div>`
+            )
+            .join("")}
+        </div>
+        <div style="position:absolute;left:52px;right:52px;top:${barY + barH + 34}px;">
+          <div style="font-size:${titleSize}px;font-weight:900;line-height:1.1;color:${v.ink};">${titleLines
+            .map((l) => `<div>${rich(l)}</div>`)
+            .join("")}</div>
+          ${v.body
+            ? `<div style="margin-top:16px;font-size:14px;line-height:1.8;color:${v.ink};opacity:.86;max-width:540px;white-space:pre-wrap;">${esc(v.body)}</div>`
+            : ""}
+        </div>
+        <div style="position:absolute;bottom:38px;left:52px;right:52px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.ink};opacity:.8;">
+          <span>${esc(footL || "")}</span><span>${esc(footR || "")}</span>
+        </div>
+      </div>`;
+    },
+  },
+  // ------------------------------------------------------------------
+  {
+    id: "diptych-pair",
+    name: "双联并置展示",
+    styleId: "brutalist-type",
+    desc: "两张海报并排摆在衬纸上，做系列稿的对照展示。间距、投影、圆角、缩放都可调",
+    recommend: "作品集内页 / 系列稿提案 · 一张图讲完「这是一套」",
+    presets: [
+      {
+        id: "node66-road-pair",
+        name: "复刻 · 66 号公路双联",
+        ref: "37-node66-road-red-pair.png",
+        values: {
+          matColor: "#E7E3DA",
+          gap: "26",
+          scale: "82",
+          radius: "0",
+          shadow: "soft",
+          caption: "NODE 66 — POSTER SERIES 01 / 02",
+          captionColor: "#3A3A38",
+        },
+      },
+    ],
+    fields: [
+      { key: "matColor", label: "衬纸颜色", type: "color", default: "#E7E3DA" },
+      { key: "posterLeft", label: "左幅图片", type: "image", default: "" },
+      { key: "posterRight", label: "右幅图片", type: "image", default: "" },
+      { key: "gap", label: "两幅间距", type: "range", default: "26", min: 0, max: 80 },
+      { key: "scale", label: "整体缩放 %", type: "range", default: "82", min: 55, max: 100 },
+      { key: "radius", label: "圆角", type: "range", default: "0", min: 0, max: 24 },
+      {
+        key: "shadow",
+        label: "投影",
+        type: "select",
+        default: "soft",
+        options: [
+          { value: "none", label: "无" },
+          { value: "soft", label: "柔和" },
+          { value: "hard", label: "硬边（错位色块）" },
+        ],
+      },
+      { key: "caption", label: "底部说明", type: "text", default: "POSTER SERIES 01 / 02" },
+      { key: "captionColor", label: "说明文字色", type: "color", default: "#3A3A38" },
+    ],
+    render: (v) => {
+      const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+      const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
+      const gap = lim(num(v.gap, 26), 0, 80);
+      const scale = lim(num(v.scale, 82), 55, 100) / 100;
+      const radius = lim(num(v.radius, 0), 0, 24);
+
+      // 每幅保持 3:4。先按宽度算，若高度超出可用区就按高度反算，保证两种极端都不溢出
+      const margin = 46;
+      const captionH = v.caption ? 52 : 0;
+      const availW = (750 - margin * 2 - gap) * scale;
+      const availH = (1000 - margin * 2 - captionH) * scale;
+      let panelW = availW / 2;
+      let panelH = panelW * (4 / 3);
+      if (panelH > availH) {
+        panelH = availH;
+        panelW = panelH * (3 / 4);
+      }
+      const totalW = panelW * 2 + gap;
+      const left = (750 - totalW) / 2;
+      const top = (1000 - captionH - panelH) / 2;
+
+      const shadowCss =
+        v.shadow === "soft"
+          ? "box-shadow:0 18px 40px rgba(0,0,0,.22);"
+          : v.shadow === "hard"
+            ? "box-shadow:14px 14px 0 rgba(0,0,0,.30);"
+            : "";
+
+      const panel = (src, label, x) => `
+        <div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:#15181C;${shadowCss}">
+          ${src
+            ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:3px;color:#6B7280;">${esc(label)}</div>`}
+        </div>`;
+
+      return `
+      <div style="position:absolute;inset:0;background:${v.matColor};overflow:hidden;">
+        ${panel(v.posterLeft, "LEFT", left)}
+        ${panel(v.posterRight, "RIGHT", left + panelW + gap)}
+        ${v.caption
+          ? `<div style="position:absolute;left:0;right:0;bottom:34px;text-align:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:4px;color:${v.captionColor};">${esc(v.caption)}</div>`
+          : ""}
+      </div>`;
+    },
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "line-event-quartet",
+    name: "线稿活动四联",
+    styleId: "playful-craft",
+    desc: "Design MORO / 湖集系列：2×2 四联画布，四个子海报的色块、插画位、标题和说明都可单独编辑",
+    recommend: "系列海报总览 / 活动视觉提案 · 适合把四张同主题海报一次排成一张总览图",
+    presets: [
+      {
+        id: "design-moro-quartet",
+        name: "复刻 · Design MORO 四联",
+        ref: "66-line-event-quartet.png",
+        values: {
+          bg: "#D9D9D6",
+          gap: "12",
+          ink: "#111111",
+          p1Bg: "#FFFFFF",
+          p1Tag: "DESIGN MORO",
+          p1Title: "What should we design?",
+          p1Sub: "Branding  Poster  Editorial",
+          p1Caption: "since 2021.03.03",
+          p1Shape: "tent",
+          p1Color: "#E8624B",
+          p2Bg: "#F7F7F4",
+          p2Tag: "53 STREET PARTY",
+          p2Title: "100 Possibilities",
+          p2Sub: "in the Vicinity",
+          p2Caption: "街区市集 · slowtalk · 工作坊",
+          p2Shape: "people",
+          p2Color: "#1F9DE4",
+          p3Bg: "#F8F8F6",
+          p3Tag: "PLAN : POOOD",
+          p3Title: "Time to 按需\nplay, 嬉戏, recharge",
+          p3Sub: "the 呼吸. day.",
+          p3Caption: "市集 · 分享会 · workshop",
+          p3Shape: "chairs",
+          p3Color: "#E48AB7",
+          p4Bg: "#F3F3F0",
+          p4Tag: "湖集 HU FAIR",
+          p4Title: "在湖集\n划个水",
+          p4Sub: "At the lake\ndraw a water",
+          p4Caption: "Lake water · music · alcohol",
+          p4Shape: "swimmer",
+          p4Color: "#18A7DD",
+          meta: "POSTER LAB / LINE EVENT SERIES / 2026",
+        },
+      },
+    ],
+    fields: [
+      { key: "bg", label: "总览衬底", type: "color", default: "#D9D9D6" },
+      { key: "gap", label: "四联间距", type: "range", default: "12", min: 0, max: 28 },
+      { key: "ink", label: "默认文字色", type: "color", default: "#111111" },
+      { key: "p1Bg", label: "① Design MORO 背景", type: "color", default: "#FFFFFF" },
+      { key: "p1Tag", label: "① 眉题", type: "text", default: "DESIGN MORO" },
+      { key: "p1Title", label: "① 标题", type: "textarea", default: "What should we design?" },
+      { key: "p1Sub", label: "① 分类小字", type: "textarea", default: "Branding  Poster  Editorial" },
+      { key: "p1Caption", label: "① 底部说明", type: "text", default: "since 2021.03.03" },
+      { key: "p1Shape", label: "① 插画形状", type: "select", default: "tent", options: [{ value: "tent", label: "帐篷" }, { value: "slide", label: "滑梯" }, { value: "people", label: "人物" }, { value: "swimmer", label: "湖水人物" }] },
+      { key: "p1Color", label: "① 插画主色", type: "color", default: "#E8624B" },
+      { key: "p1Art", label: "① 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "p2Bg", label: "② Street Party 背景", type: "color", default: "#F7F7F4" },
+      { key: "p2Tag", label: "② 眉题", type: "text", default: "53 STREET PARTY" },
+      { key: "p2Title", label: "② 标题", type: "textarea", default: "100 Possibilities" },
+      { key: "p2Sub", label: "② 副标题", type: "textarea", default: "in the Vicinity" },
+      { key: "p2Caption", label: "② 活动信息", type: "textarea", default: "街区市集 · slowtalk · 工作坊" },
+      { key: "p2Shape", label: "② 插画形状", type: "select", default: "people", options: [{ value: "people", label: "模糊人物" }, { value: "slide", label: "滑梯" }, { value: "swimmer", label: "运动人物" }, { value: "tent", label: "帐篷" }] },
+      { key: "p2Color", label: "② 插画主色", type: "color", default: "#1F9DE4" },
+      { key: "p2Art", label: "② 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "p3Bg", label: "③ Recharge 背景", type: "color", default: "#F8F8F6" },
+      { key: "p3Tag", label: "③ 眉题", type: "text", default: "PLAN : POOOD" },
+      { key: "p3Title", label: "③ 标题", type: "textarea", default: "Time to 按需\nplay, 嬉戏, recharge" },
+      { key: "p3Sub", label: "③ 副标题", type: "textarea", default: "the 呼吸. day." },
+      { key: "p3Caption", label: "③ 活动信息", type: "textarea", default: "市集 · 分享会 · workshop" },
+      { key: "p3Shape", label: "③ 插画形状", type: "select", default: "chairs", options: [{ value: "chairs", label: "椅子组" }, { value: "people", label: "人物组" }, { value: "tent", label: "帐篷" }, { value: "slide", label: "滑梯" }] },
+      { key: "p3Color", label: "③ 插画主色", type: "color", default: "#E48AB7" },
+      { key: "p3Art", label: "③ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "p4Bg", label: "④ 湖集背景", type: "color", default: "#F3F3F0" },
+      { key: "p4Tag", label: "④ 眉题", type: "text", default: "湖集 HU FAIR" },
+      { key: "p4Title", label: "④ 标题", type: "textarea", default: "在湖集\n划个水" },
+      { key: "p4Sub", label: "④ 副标题", type: "textarea", default: "At the lake\ndraw a water" },
+      { key: "p4Caption", label: "④ 活动信息", type: "textarea", default: "Lake water · music · alcohol" },
+      { key: "p4Shape", label: "④ 插画形状", type: "select", default: "swimmer", options: [{ value: "swimmer", label: "游泳人物" }, { value: "people", label: "人物组" }, { value: "slide", label: "滑板" }, { value: "tent", label: "帐篷" }] },
+      { key: "p4Color", label: "④ 插画主色", type: "color", default: "#18A7DD" },
+      { key: "p4Art", label: "④ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "meta", label: "总览脚注", type: "text", default: "POSTER LAB / LINE EVENT SERIES / 2026" },
+    ],
+    render: (v) => {
+      const n = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+      const gap = Math.min(Math.max(n(v.gap, 12), 0), 28);
+      const panelW = (750 - gap * 3) / 2;
+      const panelH = (1000 - gap * 3 - 28) / 2;
+      const artSvg = (shape, color) => {
+        const common = `stroke="#111" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"`;
+        if (shape === "tent") return `<svg viewBox="0 0 220 170" aria-hidden="true"><polygon points="18,142 104,18 205,142" fill="${color}" ${common}/><path d="M104 18 L120 142 M62 83 L155 102 M98 69 L134 88" fill="none" ${common}/></svg>`;
+        if (shape === "slide") return `<svg viewBox="0 0 220 170" aria-hidden="true"><path d="M38 135h150L151 36h-36c-20 64-35 88-77 99Z" fill="${color}" ${common}/><path d="M77 92c39-7 54-31 62-56M151 36v99" fill="none" ${common}/></svg>`;
+        if (shape === "chairs") return `<svg viewBox="0 0 220 170" aria-hidden="true"><g fill="${color}" ${common}><path d="M16 64h37v64H16zM26 32h25v32H26zM65 78h36v50H65zM73 45h22v33H73zM118 61h38v67h-38zM127 28h22v33h-22zM166 76h38v52h-38zM175 42h21v34h-21z"/></g></svg>`;
+        if (shape === "swimmer") return `<svg viewBox="0 0 220 170" aria-hidden="true"><circle cx="146" cy="62" r="21" fill="${color}" ${common}/><path d="M128 78c-35 7-60 27-78 48m79-42c-20 31-31 50-53 65m66-67c18 12 28 21 50 26" fill="none" ${common}/><ellipse cx="135" cy="116" rx="73" ry="35" fill="${color}" opacity=".55" ${common}/></svg>`;
+        return `<svg viewBox="0 0 220 170" aria-hidden="true"><g fill="${color}" ${common}><circle cx="70" cy="55" r="18"/><circle cx="136" cy="45" r="18"/><path d="M55 78l-20 60h44l-4-43 32 43h39l-22-60z"/><path d="M122 67l-18 74h45l2-73z"/></g></svg>`;
+      };
+      const panel = (index, x, y) => {
+        const bg = v[`p${index}Bg`] || "#fff";
+        const title = String(v[`p${index}Title`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
+        const sub = String(v[`p${index}Sub`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
+        const art = v[`p${index}Art`]
+          ? `<img src="${v[`p${index}Art`]}" style="position:absolute;left:8%;top:27%;width:84%;height:42%;object-fit:contain;filter:saturate(135%) contrast(112%);" />`
+          : `<div style="position:absolute;left:8%;top:28%;width:84%;height:39%;display:flex;align-items:center;justify-content:center;">${artSvg(v[`p${index}Shape`], v[`p${index}Color`])}</div>`;
+        return `<section style="position:absolute;left:${x}px;top:${y}px;width:${panelW}px;height:${panelH}px;background:${bg};overflow:hidden;color:${v.ink || "#111"};font-family:Helvetica,Arial,sans-serif;">
+          <div style="position:absolute;top:16px;left:18px;right:18px;font-size:10px;letter-spacing:1.7px;font-weight:700;">${esc(v[`p${index}Tag`])}</div>
+          <div style="position:absolute;top:42px;left:18px;right:16px;font-size:${index === 2 ? 22 : 25}px;font-weight:700;line-height:1.02;letter-spacing:-.5px;">${title}</div>
+          ${art}
+          <div style="position:absolute;left:18px;right:18px;bottom:52px;font-size:10px;line-height:1.35;white-space:pre-wrap;">${esc(v[`p${index}Caption`])}</div>
+          <div style="position:absolute;left:18px;right:18px;bottom:16px;font-size:13px;line-height:1.04;font-weight:700;white-space:pre-wrap;">${sub}</div>
+          <div style="position:absolute;right:12px;bottom:10px;font-size:8px;letter-spacing:1px;opacity:.55;">0${index}</div>
+        </section>`;
+      };
+      return `<div style="position:absolute;inset:0;background:${v.bg || "#ddd"};overflow:hidden;">
+        ${panel(1, gap, gap)}
+        ${panel(2, gap * 2 + panelW, gap)}
+        ${panel(3, gap, gap * 2 + panelH)}
+        ${panel(4, gap * 2 + panelW, gap * 2 + panelH)}
+        <div style="position:absolute;left:0;right:0;bottom:0;height:28px;display:flex;align-items:center;justify-content:center;font:9px/1 'Space Mono',ui-monospace,monospace;letter-spacing:2px;color:#555;">${esc(v.meta)}</div>
+      </div>`;
+    },
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "crossover-variant-poster",
+    name: "CROSS OVER 配色海报",
+    styleId: "minimal-editorial",
+    desc: "固定构图 + 多色预设：右上图形卡、左下细体标题、下半几何酒杯；所有文字、图像和色彩均可编辑",
+    recommend: "音乐/展览系列海报 · 一套骨架快速生成多张配色变体",
+    presets: [
+      { id: "crossover-white", name: "复刻 · 白棕版", ref: "67-crossover-spring-white.png", values: { bg: "#FBFBF9", lowerBg: "#4A382C", titleColor: "#9AA9D2", cardBg: "#A7B4D8", cardColor: "#BE163A", lowerInk: "#C7BFE5", drinkColor: "#9AA9D2", accent: "#F49CAF", layout: "top-right" } },
+      { id: "crossover-blue", name: "复刻 · 蓝靛版", ref: "68-crossover-spring-blue.png", values: { bg: "#2098DF", lowerBg: "#0E1426", titleColor: "#F5F1D9", cardBg: "#F0EEDC", cardColor: "#8F8F96", lowerInk: "#F5F1D9", drinkColor: "#F5F1D9", accent: "#FF1838", layout: "top-right" } },
+      { id: "crossover-cyan", name: "复刻 · 青粉版", ref: "69-crossover-spring-cyan.png", values: { bg: "#7DBFC9", lowerBg: "#33231F", titleColor: "#F7B8E1", cardBg: "#F5BDE5", cardColor: "#4C786C", lowerInk: "#F7B8E1", drinkColor: "#F7B8E1", accent: "#F50E37", layout: "top-right" } },
+      { id: "crossover-pink", name: "复刻 · 粉绿版", ref: "70-crossover-spring-pink.png", values: { bg: "#F7D6DE", lowerBg: "#2B211F", titleColor: "#71865B", cardBg: "#71865B", cardColor: "#91A9B7", lowerInk: "#71865B", drinkColor: "#71865B", accent: "#FF1A39", layout: "top-right" } },
+    ],
+    fields: [
+      { key: "bg", label: "上半背景色", type: "color", default: "#FBFBF9" },
+      { key: "lowerBg", label: "下半背景色", type: "color", default: "#4A382C" },
+      { key: "upperH", label: "上半高度", type: "range", default: "650", min: 520, max: 760 },
+      { key: "topline", label: "顶部小标题", type: "text", default: "CROSS OVER" },
+      { key: "title", label: "主标题（换行）", type: "textarea", default: "SPRING\nIS NOT FAR AWAY" },
+      { key: "titleColor", label: "主标题色", type: "color", default: "#9AA9D2" },
+      { key: "titleSize", label: "主标题字号", type: "range", default: "58", min: 34, max: 84 },
+      { key: "cardBg", label: "右上卡片底色", type: "color", default: "#A7B4D8" },
+      { key: "cardColor", label: "右上图形色", type: "color", default: "#BE163A" },
+      { key: "cardShape", label: "右上图形", type: "select", default: "blob-clock", options: [{ value: "blob-clock", label: "有机时钟" }, { value: "circle", label: "圆形图案" }, { value: "square", label: "几何方块" }] },
+      { key: "heroImage", label: "右上图形图片（可选）", type: "image", default: "", fx: "pop-sticker" },
+      { key: "lowerInk", label: "下半小字色", type: "color", default: "#C7BFE5" },
+      { key: "drinkColor", label: "酒杯几何色", type: "color", default: "#9AA9D2" },
+      { key: "drinkAccent", label: "酒杯圆点色", type: "color", default: "#F49CAF" },
+      { key: "lowerQuote", label: "下半左侧短句", type: "textarea", default: "If I must fall then let me fall\nThe person I'm meant to become\nwill surely catch me" },
+      { key: "lowerLeft", label: "下半左下小字", type: "text", default: "Tomorrow Will Be Alright" },
+      { key: "lowerRight", label: "下半右侧小字", type: "text", default: "一定会接住我" },
+      { key: "lowerBottom", label: "下半右下小字", type: "text", default: "我会成为的那个人" },
+      { key: "accent", label: "星号/点缀色", type: "color", default: "#F49CAF" },
+      { key: "detailImage", label: "下半附加图（可选）", type: "image", default: "", fx: "duotone-print" },
+      { key: "layout", label: "构图方向", type: "select", default: "top-right", options: [{ value: "top-right", label: "右上卡片" }, { value: "top-left", label: "左上卡片" }] },
+    ],
+    render: (v) => {
+      const upperH = Math.min(Math.max(Number(v.upperH) || 650, 520), 760);
+      const titleLines = String(v.title || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
+      const quoteLines = String(v.lowerQuote || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
+      const cardX = v.layout === "top-left" ? 52 : 556;
+      const card = v.heroImage
+        ? `<img src="${v.heroImage}" style="width:100%;height:100%;object-fit:cover;filter:saturate(130%) contrast(112%);" />`
+        : `<svg viewBox="0 0 160 200" width="100%" height="100%"><path d="M82 20c45-3 67 33 59 72-8 40-37 85-78 85-33 0-58-29-53-65 4-29 36-89 72-92Z" fill="${v.cardColor}"/><g fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"><path d="M80 63v65M59 98h48M43 68l20 8M119 70l-18 9M51 133l14-11M113 135l-14-12"/><path d="M53 52l8 12M110 48l-8 14"/></g><circle cx="53" cy="88" r="11" fill="${v.accent}"/><circle cx="115" cy="88" r="11" fill="${v.accent}"/></svg>`;
+      const drink = `<svg viewBox="0 0 750 260" width="100%" height="260" preserveAspectRatio="none"><path d="M65 35h620L470 107 393 150v74h-36v-74l-77-43Z" fill="none" stroke="${v.drinkColor}" stroke-width="16" stroke-linejoin="round"/><ellipse cx="375" cy="89" rx="186" ry="27" fill="${v.drinkColor}" opacity=".25"/><circle cx="302" cy="77" r="25" fill="${v.drinkAccent}"/><circle cx="375" cy="211" r="24" fill="${v.drinkColor}"/></svg>`;
+      return `<div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;font-family:Helvetica,Arial,sans-serif;">
+        <div style="position:absolute;left:0;right:0;top:0;height:${upperH}px;background:${v.bg};">
+          <div style="position:absolute;top:22px;left:0;right:0;text-align:center;font-size:24px;line-height:1;color:${v.titleColor};font-weight:300;letter-spacing:-1px;">${esc(v.topline)}</div>
+          <div style="position:absolute;left:${v.layout === "top-left" ? 270 : 36}px;bottom:48px;color:${v.titleColor};font-size:${Number(v.titleSize) || 58}px;font-weight:300;line-height:.88;letter-spacing:-3px;">${titleLines}</div>
+          <div style="position:absolute;left:${cardX}px;top:26px;width:142px;height:184px;background:${v.cardBg};padding:13px;box-sizing:border-box;">${card}</div>
+          <div style="position:absolute;left:${v.layout === "top-left" ? 556 : 38}px;bottom:238px;font-size:22px;color:${v.accent};letter-spacing:8px;">✳</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:${upperH}px;bottom:0;background:${v.lowerBg};color:${v.lowerInk};overflow:hidden;">
+          ${drink}
+          ${v.detailImage ? `<img src="${v.detailImage}" style="position:absolute;left:46%;top:28px;width:112px;height:112px;object-fit:contain;mix-blend-mode:screen;" />` : ""}
+          <div style="position:absolute;left:26px;top:130px;font-size:13px;line-height:1.22;">${quoteLines}</div>
+          <div style="position:absolute;left:26px;bottom:28px;font-size:13px;">${esc(v.lowerLeft)}</div>
+          <div style="position:absolute;right:26px;top:148px;font-size:14px;">${esc(v.lowerRight)}</div>
+          <div style="position:absolute;right:42px;bottom:28px;font-size:13px;">${esc(v.lowerBottom)} <span style="color:${v.accent};font-size:24px;">✳</span></div>
+        </div>
+      </div>`;
+    },
+  },
+
+  // ------------------------------------------------------------------
+  {
+    id: "photo-callout-zoom",
+    name: "照片荧光放大标注",
+    styleId: "photo-text",
+    desc: "失焦照片 + 局部双色处理 + 荧光连线。背景图、放大图、位置、比例、模糊和颗粒都可调",
+    recommend: "摄影观察海报 / 展览研究卡 · 适合把一个细节从环境里拉出来",
+    presets: [
+      { id: "callout-skeleton", name: "复刻 · 骨骼粉卡", ref: "72-photo-callout-skeleton.png", values: { layout: "top-right", bg: "#F6F4F0", accent: "#FFF000", cardBg: "#F36BC8", photoTint: "#6F6C60", detailTint: "#FFF000", blur: "10", grain: "22", lineWidth: "3", title: "SPECIMEN / SKELETON" } },
+      { id: "callout-fish", name: "复刻 · 鱼群黄卡", ref: "73-photo-callout-fish.png", values: { layout: "bottom-left", bg: "#F6F4F0", accent: "#FFF000", cardBg: "#FFD500", photoTint: "#6F6C60", detailTint: "#FF63D1", blur: "10", grain: "22", lineWidth: "3", title: "SPECIMEN / FISH" } },
+    ],
+    fields: [
+      { key: "photo", label: "背景照片", type: "image", default: "", fx: "duotone-print" },
+      { key: "detailImage", label: "局部放大图", type: "image", default: "", fx: "duotone-print" },
+      { key: "bg", label: "外圈纸张色", type: "color", default: "#F6F4F0" },
+      { key: "photoTint", label: "背景双色暗部", type: "color", default: "#6F6C60" },
+      { key: "detailTint", label: "放大图双色亮部", type: "color", default: "#FFF000" },
+      { key: "cardBg", label: "放大卡底色", type: "color", default: "#F36BC8" },
+      { key: "accent", label: "连线/框线颜色", type: "color", default: "#FFF000" },
+      { key: "layout", label: "放大卡位置", type: "select", default: "top-right", options: [{ value: "top-right", label: "右上" }, { value: "bottom-left", label: "左下" }] },
+      { key: "cardSize", label: "放大卡尺寸", type: "range", default: "210", min: 130, max: 300 },
+      { key: "sourceX", label: "原图取景点 X", type: "range", default: "64", min: 10, max: 90 },
+      { key: "sourceY", label: "原图取景点 Y", type: "range", default: "56", min: 10, max: 90 },
+      { key: "blur", label: "背景模糊", type: "range", default: "10", min: 0, max: 28 },
+      { key: "grain", label: "照片颗粒", type: "range", default: "22", min: 0, max: 70 },
+      { key: "lineWidth", label: "连线宽度", type: "range", default: "3", min: 1, max: 8 },
+      { key: "title", label: "顶部小标题", type: "text", default: "SPECIMEN / DETAIL STUDY" },
+      { key: "caption", label: "底部说明", type: "text", default: "OBSERVATION 01 · 2026" },
+    ],
+    render: (v) => {
+      const cardSize = Math.min(Math.max(Number(v.cardSize) || 210, 130), 300);
+      const topRight = v.layout !== "bottom-left";
+      // 照片内框实际是 530×760，所有标注坐标都在这个局部坐标系中计算，
+      // 避免把放大卡按外层 750×1000 坐标推到照片区域之外。
+      const innerW = 530;
+      const innerH = 760;
+      const cardX = topRight ? innerW - cardSize - 34 : 34;
+      const cardY = topRight ? 54 : innerH - cardSize - 74;
+      const srcX = Math.round(((Number(v.sourceX) || 64) / 100) * innerW);
+      const srcY = Math.round(((Number(v.sourceY) || 56) / 100) * innerH);
+      const lineEndX = topRight ? cardX : cardX + cardSize;
+      const lineEndY = topRight ? cardY + cardSize : cardY;
+      const bgImg = v.photo
+        ? `<img src="${v.photo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(${Number(v.blur) || 0}px) saturate(62%) contrast(92%);transform:scale(1.04);" />`
+        : `<div style="position:absolute;inset:0;background:radial-gradient(circle at 72% 38%,${v.photoTint || "#B4B1A3"} 0 18%,transparent 19%),linear-gradient(115deg,#D17EA4 0 27%,${v.photoTint || "#8D897C"} 28% 64%,#506C4D 65%);filter:blur(${Number(v.blur) || 0}px);transform:scale(1.04);"></div>`;
+      const detail = v.detailImage
+        ? `<img src="${v.detailImage}" style="width:100%;height:100%;object-fit:contain;filter:saturate(145%) contrast(118%);mix-blend-mode:multiply;" />`
+        : `<div style="width:76%;height:76%;margin:12%;border:4px solid ${v.detailTint};border-radius:35% 45% 38% 42%;transform:rotate(-8deg);"></div>`;
+      return `<div style="position:absolute;inset:0;background:${v.bg};font-family:Helvetica,Arial,sans-serif;overflow:hidden;">
+        <div style="position:absolute;left:110px;top:78px;width:530px;height:760px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.25);">
+          ${bgImg}
+          <div style="position:absolute;inset:0;background:${v.photoTint || "#6F6C60"};opacity:.12;mix-blend-mode:color;"></div>
+          <div style="position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.18) 1px,transparent 1px);background-size:5px 5px;opacity:${(Number(v.grain) || 0) / 100};mix-blend-mode:screen;"></div>
+          <svg viewBox="0 0 ${innerW} ${innerH}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"><rect x="${srcX - 12}" y="${srcY - 12}" width="24" height="24" fill="none" stroke="${v.accent}" stroke-width="${Number(v.lineWidth) || 3}"/><path d="M${srcX} ${srcY} L${lineEndX} ${lineEndY} M${srcX + 24} ${srcY + 22} L${lineEndX + (topRight ? 0 : -cardSize)} ${lineEndY + (topRight ? cardSize : 0)}" fill="none" stroke="${v.accent}" stroke-width="${Number(v.lineWidth) || 3}"/></svg>
+          <div style="position:absolute;left:${topRight ? 355 : 18}px;top:${topRight ? 26 : 708}px;color:${v.accent};font-size:11px;letter-spacing:2px;">${esc(v.title)}</div>
+          <div style="position:absolute;left:${topRight ? Math.max(18, cardX - 110) : 18}px;top:${topRight ? cardY + cardSize + 24 : cardY + cardSize + 14}px;color:${v.accent};font:10px/1.4 'Space Mono',ui-monospace,monospace;">${esc(v.caption)}</div>
+          <div style="position:absolute;left:${cardX}px;top:${cardY}px;width:${cardSize}px;height:${cardSize}px;background:${v.cardBg};overflow:hidden;">${detail}</div>
+        </div>
       </div>`;
     },
   },
