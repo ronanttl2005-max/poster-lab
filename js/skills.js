@@ -81,13 +81,9 @@ export function openAiKeyModal(onSaved) {
   backdrop.className = "modal-backdrop";
   backdrop.innerHTML = `
     <div class="modal-panel" role="dialog" aria-modal="true">
-      <h3>填写你自己的 API Key</h3>
-      <p class="modal-hint">
-        Skill 的 AI 运行用<strong>你自己的 key</strong>，直接从你的浏览器发出，
-        <strong>只存在这台设备上</strong>，不会上传、不进代码。<br/>
-        接口地址：<code>${esc(API_BASE)}</code>
-      </p>
-      <input type="password" id="ai-key-input" class="modal-input" placeholder="粘贴 API Key（sk-...）" value="${esc(getAiKey())}" />
+      <h3>填写 API Key</h3>
+      <p class="modal-hint">粘贴一次，这台设备之后一直记住。</p>
+      <input type="password" id="ai-key-input" class="modal-input" placeholder="sk-..." value="${esc(getAiKey())}" />
       <div class="modal-actions">
         <button class="m-btn" type="button" data-close>取消</button>
         <button class="m-btn primary" type="button" id="ai-key-save">保存</button>
