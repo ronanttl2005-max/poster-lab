@@ -11,9 +11,10 @@
 //   inputHint 输入区提示文案
 //
 //   —— image 类专用 ——
-//   model     调用的模型（默认 gpt-image-2；网关不支持时自动尝试兼容模型）
-//   size      输出尺寸（如 "1024x1024"）
-//   prompt    传给 AI 的英文指令（决定效果）
+//   model     直接图像编辑的模型（默认 gpt-image-2；兼容模式会自动尝试后备模型）
+//   reasoningModel  Responses API 用于理解场景并调用图像编辑工具的主模型
+//   size/quality    输出尺寸与质量
+//   prompt    效果定义；主模型会结合上传图片理解具体主体和动作
 //
 //   —— text 类专用 ——
 //   model     文本模型（默认 gpt-4o-mini）
@@ -47,20 +48,21 @@ const COVER_COPY = `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg
 export const SKILLS = [
   {
     id: "photo-doodle-face",
-    name: "照片涂鸦脸",
-    nameEn: "Photo Doodle Face",
+    name: "照片拟人涂鸦",
+    nameEn: "Photo Character Doodle",
     type: "image",
-    desc: "上传一张人像照片，AI 用黑色马克笔风格在脸上和画面里手绘涂鸦（星星、眼镜、小帽子、火花），保留原照片，叠加俏皮线条。",
-    tags: ["图生图", "涂鸦", "人像"],
+    desc: "识别照片里的山、建筑、地标或物体，把主体本身变成有表情和动作的手绘角色，同时保留真实照片与现场氛围。",
+    tags: ["图生图", "拟人涂鸦", "混合媒介"],
     cover: COVER_DOODLE,
     coverImage: "",
     model: "gpt-image-2",
-    // auto 会尽量保留原图比例；固定正方形会让人像被裁切/重构。
+    reasoningModel: "gpt-5.6",
+    // auto 会尽量保留原图比例；固定正方形容易让照片被裁切或重构。
     size: "auto",
     quality: "high",
     prompt:
-      "Edit this exact input photo; do not generate a new scene. Preserve the original person, identity, face, pose, clothing, background, lighting, colors, framing, texture, and aspect ratio. Add only a transparent-looking overlay of black ink doodles, as if a person used a black felt-tip marker directly on the printed photograph: simple round hand-drawn glasses aligned with the eyes, a tiny imperfect crown or hat above the head, small stars and sparkles around the face, a few loose squiggles and a small speech bubble in empty space. Keep the doodles playful, thin-to-medium, slightly imperfect, and clearly black. Do not repaint, redraw, beautify, stylize, blur, crop, replace, or cover the photograph; do not add colored marks, realistic objects, extra people, or large text. The final image must look like the same original photo with black marker doodles drawn on top.",
-    inputHint: "上传一张清晰的人像照片，效果最好。",
+      "First identify the single most visually dominant mountain, building, landmark, or object in the photo. Edit this same photo so that the subject itself becomes a whimsical anthropomorphic character, using its real shape and texture as the character's body. Preserve the original background, framing, lighting, colors, and photographic detail. Add expressive hand-drawn eyes, a small mouth, simple ink arms and hands, plus one scene-appropriate colorful illustrated prop, clothing item, or action. Make the added details respond to the subject and environment, like playful editorial mixed media. Do not add generic stars, glasses, speech bubbles, text, or random stickers. Do not repaint the whole photo or replace the subject.",
+    inputHint: "上传主体明确的风景、建筑、地标或物体照片；主体轮廓越清楚，拟人效果越自然。",
   },
   {
     id: "poster-copy",
