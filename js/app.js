@@ -118,6 +118,7 @@ const routes = {
   styles: renderStyles,
   editor: renderEditor,
   tools: renderTools,
+  skills: renderSkills,
   workflow: renderWorkflow,
 };
 
@@ -1023,6 +1024,35 @@ function renderTools(param) {
     .catch((err) => {
       console.error(err);
       root.innerHTML = `<p class="tools-loading">工具加载失败：${escapeHtml(err?.message || err)}</p>`;
+    });
+  return () => {
+    cancelled = true;
+    cleanup();
+  };
+}
+
+function renderSkills(param) {
+  app.innerHTML = `
+    <div class="page-head">
+      <div class="en">AI Skills</div>
+      <h1>Skill 库</h1>
+      <p>把喜欢的 AI 效果做成一张张卡片：看到中意的，上传自己的图片或输入需求，一键复刻。AI 用你自己的 API Key 直接在浏览器里跑，Key 只存本机、不进代码，对站长零成本。</p>
+    </div>
+    <div id="skills-root"><div class="tools-loading">Skill 加载中…</div></div>`;
+  const root = document.getElementById("skills-root");
+  let cleanup = () => {};
+  let cancelled = false;
+  import("./skills.js")
+    .then(({ mountSkills }) => {
+      if (cancelled) return;
+      return mountSkills(root, param).then((c) => {
+        if (cancelled) { (c || (() => {}))(); return; }
+        cleanup = c || (() => {});
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      root.innerHTML = `<p class="tools-loading">Skill 加载失败：${escapeHtml(err?.message || err)}</p>`;
     });
   return () => {
     cancelled = true;

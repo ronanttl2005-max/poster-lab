@@ -949,3 +949,48 @@ main {
 .tool-preset-chip.active {
   background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong);
 }
+
+/* ---------------- Skill 库 ---------------- */
+.skills-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+.skills-key-state { font-size: 13px; }
+.skills-key-state .key-ok { color: #2e8b57; }
+.skills-key-state .key-warn { color: #c0392b; }
+.tool-card { position: relative; }
+.skill-type-badge {
+  position: absolute; top: 30px; right: 30px; font-size: 11px; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-strong);
+  padding: 3px 9px; border-radius: 999px;
+}
+.tool-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.skill-run { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 24px; align-items: start; }
+@media (max-width: 720px) { .skill-run { grid-template-columns: 1fr; } }
+.skill-input { display: flex; flex-direction: column; gap: 12px; }
+.skill-drop { cursor: pointer; }
+.skill-preview {
+  height: 220px; border: 2px dashed var(--line); border-radius: 12px; background: var(--bg-3);
+  display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--text-3);
+}
+.skill-preview img { width: 100%; height: 100%; object-fit: contain; }
+.skill-drop:hover .skill-preview { border-color: var(--accent); }
+.skill-hint { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin: 0; }
+.skill-textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  font: inherit; font-size: 14px; resize: vertical; background: var(--bg-2); color: var(--text);
+}
+.skill-textarea:focus { outline: 2px solid var(--accent-2); border-color: var(--accent); }
+.skill-output {
+  min-height: 220px; border: 1px solid var(--line); border-radius: 12px; padding: 18px;
+  background: var(--bg-2); display: flex; flex-direction: column; gap: 12px; align-items: flex-start;
+}
+.skill-output-empty, .skill-loading { color: var(--text-3); font-size: 13px; margin: auto; }
+.skill-result-img img, .skill-result-text { width: 100%; }
+.skill-result-img img { border-radius: 10px; }
+.skill-result-text {
+  white-space: pre-wrap; word-break: break-word; font: inherit; font-size: 14px; line-height: 1.7;
+  margin: 0; color: var(--text);
+}
+.skill-err { color: #c0392b; font-size: 13.5px; line-height: 1.6; margin: auto 0; }
