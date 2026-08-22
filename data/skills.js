@@ -55,9 +55,11 @@ export const SKILLS = [
     cover: COVER_DOODLE,
     coverImage: "",
     model: "gpt-image-2",
-    size: "1024x1024",
+    // auto 会尽量保留原图比例；固定正方形会让人像被裁切/重构。
+    size: "auto",
+    quality: "high",
     prompt:
-      "Keep the original photo fully visible. Add playful hand-drawn doodles over the face and around the subject — squiggles, tiny stars, cartoon glasses, a little hat, sparkles and speech bubbles — drawn in a bold black marker / ballpoint pen sketch style, as if someone doodled on top of the printed photo. Only overlay the doodles, do not repaint or replace the photo underneath.",
+      "Edit this exact input photo; do not generate a new scene. Preserve the original person, identity, face, pose, clothing, background, lighting, colors, framing, texture, and aspect ratio. Add only a transparent-looking overlay of black ink doodles, as if a person used a black felt-tip marker directly on the printed photograph: simple round hand-drawn glasses aligned with the eyes, a tiny imperfect crown or hat above the head, small stars and sparkles around the face, a few loose squiggles and a small speech bubble in empty space. Keep the doodles playful, thin-to-medium, slightly imperfect, and clearly black. Do not repaint, redraw, beautify, stylize, blur, crop, replace, or cover the photograph; do not add colored marks, realistic objects, extra people, or large text. The final image must look like the same original photo with black marker doodles drawn on top.",
     inputHint: "上传一张清晰的人像照片，效果最好。",
   },
   {
