@@ -345,6 +345,7 @@ export const TEMPLATES = [
     ],
     fields: [
       { key: "image", label: "顶部图像（可选，建议黑白）", type: "image", default: "" },
+      { key: "logo", label: "色块中央 Logo / 图案（可选）", type: "image", default: "" },
       { key: "accent", label: "色块窗颜色", type: "color", default: "#FFE600" },
       { key: "paper", label: "信息区底色", type: "color", default: "#F2EDE2" },
       { key: "date", label: "日期", type: "text", default: "SAT 5.9" },
@@ -373,12 +374,15 @@ export const TEMPLATES = [
              <div style="position:absolute;bottom:-70px;right:-40px;width:390px;height:300px;background:#f5f2ea;border-radius:63% 37% 42% 58% / 46% 62% 38% 54%;transform:rotate(11deg);"></div>
              <div style="position:absolute;top:120px;right:120px;width:150px;height:110px;background:#f5f2ea;border-radius:58% 42% 55% 45% / 60% 40% 60% 40%;transform:rotate(24deg);"></div>
            </div>`;
+      const logo = v.logo
+        ? `<img src="${v.logo}" alt="中央 Logo / 图案" style="display:block;width:72%;height:72%;object-fit:contain;" />`
+        : `<div style="width:96px;height:118px;background:#0c0c0c;border-radius:64% 36% 55% 45% / 40% 66% 34% 60%;transform:rotate(-16deg);"></div>`;
       return `
       <div style="position:absolute;inset:0;background:#000;padding:26px 28px;">
         <div style="position:relative;height:440px;overflow:hidden;">
           ${art}
           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:210px;height:210px;background:${v.accent};display:flex;align-items:center;justify-content:center;">
-            <div style="width:96px;height:118px;background:#0c0c0c;border-radius:64% 36% 55% 45% / 40% 66% 34% 60%;transform:rotate(-16deg);"></div>
+            ${logo}
           </div>
         </div>
         <div style="height:34px;background:#9c9c96;display:flex;align-items:center;overflow:hidden;">
