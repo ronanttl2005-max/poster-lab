@@ -347,6 +347,9 @@ export const TEMPLATES = [
       { key: "image", label: "顶部图像（可选，建议黑白）", type: "image", default: "" },
       { key: "logo", label: "色块中央 Logo / 图案（可选）", type: "image", default: "" },
       { key: "accent", label: "色块窗颜色", type: "color", default: "#FFE600" },
+      { key: "accentSize", label: "色块窗大小", type: "range", default: "210", min: 100, max: 330 },
+      { key: "accentOpacity", label: "色块窗透明度", type: "range", default: "100", min: 0, max: 100 },
+      { key: "logoSize", label: "中央 Logo / 图案大小", type: "range", default: "72", min: 20, max: 140 },
       { key: "paper", label: "信息区底色", type: "color", default: "#F2EDE2" },
       { key: "date", label: "日期", type: "text", default: "SAT 5.9" },
       {
@@ -375,13 +378,21 @@ export const TEMPLATES = [
              <div style="position:absolute;top:120px;right:120px;width:150px;height:110px;background:#f5f2ea;border-radius:58% 42% 55% 45% / 60% 40% 60% 40%;transform:rotate(24deg);"></div>
            </div>`;
       const logo = v.logo
-        ? `<img src="${v.logo}" alt="中央 Logo / 图案" style="display:block;width:72%;height:72%;object-fit:contain;" />`
+        ? `<img src="${v.logo}" alt="中央 Logo / 图案" style="display:block;width:${Math.min(Math.max(Number(v.logoSize) || 72, 20), 140)}%;height:${Math.min(Math.max(Number(v.logoSize) || 72, 20), 140)}%;object-fit:contain;" />`
         : `<div style="width:96px;height:118px;background:#0c0c0c;border-radius:64% 36% 55% 45% / 40% 66% 34% 60%;transform:rotate(-16deg);"></div>`;
+      const accentSize = Math.min(Math.max(Number(v.accentSize) || 210, 100), 330);
+      const rawAccentOpacity = Number(v.accentOpacity);
+      const accentOpacity = Math.min(Math.max(Number.isFinite(rawAccentOpacity) ? rawAccentOpacity : 100, 0), 100) / 100;
+      const accentHex = String(v.accent || "#FFE600").replace(/^#/, "");
+      const accentRgb = /^[0-9a-f]{6}$/i.test(accentHex)
+        ? [accentHex.slice(0, 2), accentHex.slice(2, 4), accentHex.slice(4, 6)].map((part) => parseInt(part, 16))
+        : [255, 230, 0];
+      const accentBg = `rgba(${accentRgb.join(",")},${accentOpacity})`;
       return `
       <div style="position:absolute;inset:0;background:#000;padding:26px 28px;">
         <div style="position:relative;height:440px;overflow:hidden;">
           ${art}
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:210px;height:210px;background:${v.accent};display:flex;align-items:center;justify-content:center;">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:${accentSize}px;height:${accentSize}px;background:${accentBg};display:flex;align-items:center;justify-content:center;">
             ${logo}
           </div>
         </div>
