@@ -389,7 +389,7 @@ export const TEMPLATES = [
         : [255, 230, 0];
       const accentBg = `rgba(${accentRgb.join(",")},${accentOpacity})`;
       return `
-      <div style="position:absolute;inset:0;background:#000;padding:26px 28px;">
+      <div style="position:absolute;inset:0;background:${v.paper};">
         <div style="position:relative;height:440px;overflow:hidden;">
           ${art}
           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:${accentSize}px;height:${accentSize}px;background:${accentBg};display:flex;align-items:center;justify-content:center;">

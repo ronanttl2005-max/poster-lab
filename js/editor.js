@@ -20,6 +20,93 @@ let currentId = TEMPLATES[0].id;
 const MODE_KEY = "imgMode";
 const MODE_SIMPLE = "simple";
 const MODE_DEEP = "deep";
+const PALETTE_STORAGE_KEY = "posterLab.customPalettes.v1";
+const IMAGE_SCALE_PREFIX = "imageScale:";
+const IMAGE_OPACITY_PREFIX = "imageOpacity:";
+
+const imageScaleKey = (key) => `${IMAGE_SCALE_PREFIX}${key}`;
+const imageOpacityKey = (key) => `${IMAGE_OPACITY_PREFIX}${key}`;
+const clamp = (value, min, max, fallback) => {
+  const number = Number(value);
+  return Math.min(Math.max(Number.isFinite(number) ? number : fallback, min), max);
+};
+
+function readPaletteStore() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PALETTE_STORAGE_KEY) || "{}");
+    return saved && typeof saved === "object" ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function writePaletteStore(store) {
+  try {
+    localStorage.setItem(PALETTE_STORAGE_KEY, JSON.stringify(store));
+  } catch {
+    // 隐私模式或存储空间不足时，仍允许模板编辑，只是不持久化配色。
+  }
+}
+
+const colorFields = (tpl) => tpl.fields.filter((field) => field.type === "color");
+const safeHex = (value) => (/^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : "#CCCCCC");
+
+function customPalettePanel(tpl) {
+  const fields = colorFields(tpl);
+  if (!fields.length) return "";
+  const palettes = readPaletteStore()[tpl.id] || [];
+  const saved = palettes.length
+    ? palettes
+        .map((palette) => {
+          const swatches = fields
+            .map((field) => `<i style="display:block;width:12px;height:12px;border-radius:50%;background:${safeHex(palette.values?.[field.key])};border:1px solid rgba(0,0,0,.12);"></i>`)
+            .join("");
+          return `<span style="display:inline-flex;align-items:center;gap:3px;">
+            <button type="button" class="preset-chip" data-palette-apply="${esc(palette.id)}" title="应用 ${esc(palette.name)}" style="display:inline-flex;align-items:center;gap:5px;">${swatches}<span>${esc(palette.name)}</span></button>
+            <button type="button" data-palette-delete="${esc(palette.id)}" title="删除这组配色" aria-label="删除 ${esc(palette.name)}" style="width:24px;height:24px;padding:0;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--text-3);">×</button>
+          </span>`;
+        })
+        .join("")
+    : `<span style="color:var(--text-3);font-size:10.5px;">还没有保存过配色</span>`;
+  return `<div data-custom-palette-panel style="margin:0 0 14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.72);">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;"><strong style="font-size:12px;">我的配色</strong><span style="color:var(--text-3);font-size:9.5px;">保存在此浏览器</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:9px;"><input type="text" data-palette-name maxlength="24" placeholder="配色名称（可选）" style="min-width:0;flex:1;" /><button type="button" class="btn btn-ghost" data-palette-save style="flex:none;padding:7px 10px;font-size:11px;">保存当前配色</button></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">${saved}</div>
+  </div>`;
+}
+
+function imageAdjustControls(tpl, field, values) {
+  const hasDedicatedSize = tpl.fields.some(
+    (candidate) => candidate.type === "range" && candidate.key.toLowerCase() === `${field.key}size`.toLowerCase()
+  );
+  const scale = clamp(values[imageScaleKey(field.key)], 20, 200, 100);
+  const opacity = clamp(values[imageOpacityKey(field.key)], 0, 100, 100);
+  return `<div style="display:grid;gap:7px;margin-top:9px;padding:9px;background:var(--bg-2);border-radius:8px;">
+    ${hasDedicatedSize ? "" : `<label style="margin:0;font-size:10px;">图片大小（<span data-image-adjust-value="scale">${scale}</span>%）<input type="range" min="20" max="200" value="${scale}" data-image-adjust="scale" data-image-key="${esc(field.key)}" style="width:100%;" /></label>`}
+    <label style="margin:0;font-size:10px;">图片透明度（<span data-image-adjust-value="opacity">${opacity}</span>%）<input type="range" min="0" max="100" value="${opacity}" data-image-adjust="opacity" data-image-key="${esc(field.key)}" style="width:100%;" /></label>
+  </div>`;
+}
+
+function applyImageAdjustments(stage, tpl, values) {
+  tpl.fields.filter((field) => field.type === "image").forEach((field) => {
+    const source = values[field.key];
+    if (!source) return;
+    const scale = clamp(values[imageScaleKey(field.key)], 20, 200, 100) / 100;
+    const opacity = clamp(values[imageOpacityKey(field.key)], 0, 100, 100) / 100;
+    const targets = new Set();
+    stage.querySelectorAll("img").forEach((image) => {
+      if (image.getAttribute("src") === source) targets.add(image);
+    });
+    stage.querySelectorAll("[style]").forEach((element) => {
+      if (element.style.backgroundImage?.includes(source)) targets.add(element);
+    });
+    targets.forEach((element) => {
+      element.style.scale = String(scale);
+      element.style.opacity = String(opacity);
+      element.style.transformOrigin = "center";
+    });
+  });
+}
 
 // 声明了 fx 的 image 字段才需要处理模式开关。
 const fxFields = (tpl) => tpl.fields.filter((f) => f.type === "image" && f.fx);
@@ -126,6 +213,7 @@ export function mountEditor(root, initialId, initialPresetId) {
             .map((p, n) => `<button type="button" class="preset-chip" data-preset="${n}" title="按参考原图调好参数">${esc(p.name)}</button>`)
             .join("")}</div>`
         : "") +
+      customPalettePanel(tpl) +
       (fxFields(tpl).length
         ? `<div class="field"><label for="field-imgmode">上传图处理方式</label>
             <select id="field-imgmode" data-imgmode>
@@ -146,7 +234,7 @@ export function mountEditor(root, initialId, initialPresetId) {
           if (f.type === "color")
             return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="color" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
           if (f.type === "image")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="file" accept="image/*" data-k="${esc(f.key)}" data-type="image" /></div>`;
+            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="file" accept="image/*" data-k="${esc(f.key)}" data-type="image" />${imageAdjustControls(tpl, f, v)}</div>`;
           if (f.type === "select")
             return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><select id="${inputId}" data-k="${esc(f.key)}">${f.options
               .map((o) => `<option value="${esc(o.value)}" ${o.value === val ? "selected" : ""}>${esc(o.label)}</option>`)
@@ -159,8 +247,51 @@ export function mountEditor(root, initialId, initialPresetId) {
 
     form.querySelectorAll(".preset-chip").forEach((chip) =>
       chip.addEventListener("click", () => {
+        if (chip.dataset.paletteApply) return;
         applyPreset(tpl, tpl.presets[+chip.dataset.preset]);
         renderForm();
+        renderPoster();
+      })
+    );
+
+    form.querySelector("[data-palette-save]")?.addEventListener("click", () => {
+      const store = readPaletteStore();
+      const palettes = store[tpl.id] || [];
+      const typedName = form.querySelector("[data-palette-name]")?.value.trim();
+      const name = typedName || `配色 ${palettes.length + 1}`;
+      const values = Object.fromEntries(colorFields(tpl).map((field) => [field.key, v[field.key] ?? field.default]));
+      store[tpl.id] = [...palettes, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, values }];
+      writePaletteStore(store);
+      renderForm();
+    });
+
+    form.querySelectorAll("[data-palette-apply]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const palette = (readPaletteStore()[tpl.id] || []).find((item) => item.id === button.dataset.paletteApply);
+        if (!palette) return;
+        colorFields(tpl).forEach((field) => {
+          if (palette.values?.[field.key]) v[field.key] = palette.values[field.key];
+        });
+        renderForm();
+        renderPoster();
+      })
+    );
+
+    form.querySelectorAll("[data-palette-delete]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const store = readPaletteStore();
+        store[tpl.id] = (store[tpl.id] || []).filter((item) => item.id !== button.dataset.paletteDelete);
+        writePaletteStore(store);
+        renderForm();
+      })
+    );
+
+    form.querySelectorAll("[data-image-adjust]").forEach((slider) =>
+      slider.addEventListener("input", () => {
+        const setting = slider.dataset.imageAdjust;
+        const key = setting === "opacity" ? imageOpacityKey(slider.dataset.imageKey) : imageScaleKey(slider.dataset.imageKey);
+        v[key] = slider.value;
+        slider.closest("label")?.querySelector(`[data-image-adjust-value="${setting}"]`)?.replaceChildren(slider.value);
         renderPoster();
       })
     );
@@ -246,7 +377,9 @@ export function mountEditor(root, initialId, initialPresetId) {
 
   function renderPoster() {
     const tpl = TEMPLATE_MAP[currentId];
-    stage.innerHTML = tpl.render(getValues(tpl));
+    const values = getValues(tpl);
+    stage.innerHTML = tpl.render(values);
+    applyImageAdjustments(stage, tpl, values);
   }
 
   function renderRefs() {
