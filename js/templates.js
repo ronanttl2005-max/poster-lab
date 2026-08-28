@@ -1011,13 +1011,21 @@ export const TEMPLATES = [
     styleId: "swiss-grid",
     desc: "原图素材模式完整保留 SHUTOFF 拼贴与蓝图页；切到可编辑重绘后，可替换主体、网格、标题和参数信息",
     recommend: "工业产品 / 设计研究页 · 一键复刻优先保证参考原图的整体构图与比例",
+    fieldGroups: {
+      "① 编辑方式与参考": ["replicaMode", "referenceImage"],
+      "② 画布与网格": ["bg", "gridColor", "gridSize", "ink", "accent"],
+      "③ 页眉与标题": ["code", "title", "titleEn"],
+      "④ 主体图片": ["image", "imgH"],
+      "⑤ 参数区": ["specs", "showSpecCards"],
+      "⑥ 页脚信息": ["foot"],
+    },
     presets: [
       {
         id: "shutoff-industrial",
         name: "复刻 · SHUTOFF 工业页",
         ref: "28-shutoff-industrial-01.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/28-shutoff-industrial-01.png",
           bg: "#F7F8F8",
           gridColor: "#8ECFE7",
@@ -1037,7 +1045,7 @@ export const TEMPLATES = [
         name: "复刻 · 蓝图网格页",
         ref: "31-shutoff-blueprint-grid-02.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/31-shutoff-blueprint-grid-02.png",
           bg: "#F3F5F7",
           gridColor: "#62BDE3",
@@ -1054,7 +1062,7 @@ export const TEMPLATES = [
       },
     ],
     fields: [
-      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑模板（推荐）" }, { value: "reference", label: "参考原图对照" }] },
       { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/28-shutoff-industrial-01.png" },
       { key: "bg", label: "底色", type: "color", default: "#F7F8F8" },
       { key: "gridColor", label: "网格颜色（也是深度模式染色）", type: "color", default: "#8ECFE7" },
@@ -1141,13 +1149,21 @@ export const TEMPLATES = [
     styleId: "brutalist-type",
     desc: "原图素材模式保留 Node 66 双联成品；可编辑重绘忠实采用左幅的雾蓝公路照片、红色叠字与红底黑字对角结构",
     recommend: "品牌宣言 / 公路摄影 · 先复刻原图，再切换重绘模式替换照片与两组大字",
+    fieldGroups: {
+      "① 编辑方式与参考": ["replicaMode", "referenceImage"],
+      "② 色板": ["bg", "ink", "topInk"],
+      "③ 上半照片与分割": ["photo", "splitRatio"],
+      "④ 上半标语与标签": ["tag", "slogan", "sloganSize"],
+      "⑤ 下半标语": ["sub"],
+      "⑥ 资料脚注": ["foot"],
+    },
     presets: [
       {
         id: "node66-road-red",
         name: "复刻 · 66 号公路红",
         ref: "37-node66-road-red-pair.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/37-node66-road-red-pair.png",
           bg: "#C8102E",
           ink: "#111111",
@@ -1162,7 +1178,7 @@ export const TEMPLATES = [
       },
     ],
     fields: [
-      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑模板（推荐）" }, { value: "reference", label: "参考原图对照" }] },
       { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/37-node66-road-red-pair.png" },
       { key: "bg", label: "色块底色", type: "color", default: "#C8102E" },
       { key: "ink", label: "下半大字色", type: "color", default: "#111111" },
@@ -1211,18 +1227,26 @@ export const TEMPLATES = [
     styleId: "brutalist-type",
     desc: "原图素材模式保留 Node 66 山景成品；可编辑重绘还原亮黄仪表条、底部 ABOUT US 文案与右下品牌字标",
     recommend: "户外品牌 / 团队介绍 · 原图模式用于高相似复刻，重绘模式可换成自己的山景和数据",
+    fieldGroups: {
+      "① 编辑方式与参考": ["replicaMode", "referenceImage"],
+      "② 照片与压暗": ["bg", "photo", "shade"],
+      "③ 黄色数据条": ["barY", "barColor", "stats", "timeWord"],
+      "④ 标题与正文": ["title", "titleSize", "body"],
+      "⑤ 页眉与页脚": ["ink", "kicker", "foot"],
+    },
     presets: [
       {
         id: "node66-about-us",
         name: "复刻 · ABOUT US 山景",
         ref: "40-node66-about-us-mountain.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/40-node66-about-us-mountain.png",
           bg: "#101418",
           barY: "455",
           barColor: "#FFE500",
           ink: "#FFE500",
+          timeWord: "TIME",
           shade: "18",
           kicker: "",
           title: "ABOUT US",
@@ -1234,7 +1258,7 @@ export const TEMPLATES = [
       },
     ],
     fields: [
-      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑模板（推荐）" }, { value: "reference", label: "参考原图对照" }] },
       { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/40-node66-about-us-mountain.png" },
       { key: "bg", label: "兜底底色", type: "color", default: "#101418" },
       { key: "photo", label: "满幅照片", type: "image", default: "" },
@@ -1242,6 +1266,7 @@ export const TEMPLATES = [
       { key: "barY", label: "数据条位置", type: "range", default: "455", min: 300, max: 650 },
       { key: "barColor", label: "数据条颜色", type: "color", default: "#FFE500" },
       { key: "ink", label: "文字色", type: "color", default: "#FFE500" },
+      { key: "timeWord", label: "数据条右侧大字", type: "text", default: "TIME" },
       { key: "kicker", label: "顶部小标（可留空）", type: "text", default: "" },
       { key: "title", label: "底部标题", type: "textarea", default: "ABOUT US" },
       { key: "titleSize", label: "标题字号", type: "range", default: "66", min: 42, max: 92 },
@@ -1272,7 +1297,7 @@ export const TEMPLATES = [
               ([n, unit]) => `<div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;line-height:1.16;text-transform:uppercase;"><div>${esc(n || "")}</div><div>${esc(unit || "")}</div></div>`
             )
             .join("")}
-          <div style="position:absolute;right:-28px;bottom:-32px;font-family:'Arial Black',Impact,sans-serif;font-size:116px;line-height:1;color:${v.barColor === v.ink ? "#FFF" : v.ink};opacity:.9;">TIME</div>
+          ${v.timeWord ? `<div style="position:absolute;right:-28px;bottom:-32px;font-family:'Arial Black',Impact,sans-serif;font-size:116px;line-height:1;color:${v.barColor === v.ink ? "#FFF" : v.ink};opacity:.9;">${esc(v.timeWord)}</div>` : ""}
         </div>
         <div style="position:absolute;left:34px;right:34px;bottom:68px;">
           <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:${titleSize}px;font-weight:400;line-height:1;color:${v.ink};letter-spacing:2px;">${titleLines
@@ -1293,19 +1318,38 @@ export const TEMPLATES = [
     id: "diptych-pair",
     name: "双联并置展示",
     styleId: "brutalist-type",
-    desc: "原图素材模式完整保留 Node 66 黑底双联展示；可编辑重绘可替换左右成品并调整黑场、间距和缩放",
-    recommend: "作品集内页 / 系列稿提案 · 原图模式优先还原参考中的大黑场与两张海报比例",
+    desc: "原图素材模式完整保留 Node 66 黑底双联展示；可编辑重绘把左右海报拆成独立模块，可分别替换照片、标题、标签与配色",
+    recommend: "作品集内页 / 系列稿提案 · 左右两张既可上传成品，也可按同一版式骨架分别重做",
+    fieldGroups: {
+      "① 编辑方式与参考": ["replicaMode", "referenceImage"],
+      "② 衬底与构图": ["matColor", "gap", "scale"],
+      "③ 左幅海报模块": ["leftMode", "posterLeft", "leftBg", "leftPhoto", "leftTag", "leftTitle", "leftSub", "leftInk"],
+      "④ 右幅海报模块": ["rightMode", "posterRight", "rightBg", "rightPhoto", "rightTag", "rightTitle", "rightSub", "rightInk"],
+      "⑤ 圆角、投影与说明": ["radius", "shadow", "caption", "captionColor"],
+    },
     presets: [
       {
         id: "node66-road-pair",
         name: "复刻 · 66 号公路双联",
         ref: "37-node66-road-red-pair.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/37-node66-road-red-pair.png",
           matColor: "#222222",
           gap: "18",
           scale: "72",
+          leftMode: "redraw",
+          leftBg: "#C8102E",
+          leftTag: "BM / 604",
+          leftTitle: "THE\nROAD",
+          leftSub: "IS LONG",
+          leftInk: "#111111",
+          rightMode: "redraw",
+          rightBg: "#F1F0EA",
+          rightTag: "NODE 66",
+          rightTitle: "THE\nTIME",
+          rightSub: "IS SHORT",
+          rightInk: "#111111",
           radius: "0",
           shadow: "none",
           caption: "",
@@ -1314,13 +1358,27 @@ export const TEMPLATES = [
       },
     ],
     fields: [
-      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑模板（推荐）" }, { value: "reference", label: "参考原图对照" }] },
       { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/37-node66-road-red-pair.png" },
       { key: "matColor", label: "衬纸颜色", type: "color", default: "#222222" },
-      { key: "posterLeft", label: "左幅图片", type: "image", default: "" },
-      { key: "posterRight", label: "右幅图片", type: "image", default: "" },
       { key: "gap", label: "两幅间距", type: "range", default: "18", min: 0, max: 80 },
       { key: "scale", label: "整体缩放 %", type: "range", default: "72", min: 55, max: 100 },
+      { key: "leftMode", label: "左幅内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "original", label: "原始成品素材" }] },
+      { key: "posterLeft", label: "左幅原始成品（可替换）", type: "image", default: "" },
+      { key: "leftBg", label: "左幅背景色", type: "color", default: "#C8102E" },
+      { key: "leftPhoto", label: "左幅照片（可选）", type: "image", default: "" },
+      { key: "leftTag", label: "左幅标签", type: "text", default: "BM / 604" },
+      { key: "leftTitle", label: "左幅标题（换行）", type: "textarea", default: "THE\nROAD" },
+      { key: "leftSub", label: "左幅副标题", type: "text", default: "IS LONG" },
+      { key: "leftInk", label: "左幅文字色", type: "color", default: "#111111" },
+      { key: "rightMode", label: "右幅内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "original", label: "原始成品素材" }] },
+      { key: "posterRight", label: "右幅原始成品（可替换）", type: "image", default: "" },
+      { key: "rightBg", label: "右幅背景色", type: "color", default: "#F1F0EA" },
+      { key: "rightPhoto", label: "右幅照片（可选）", type: "image", default: "" },
+      { key: "rightTag", label: "右幅标签", type: "text", default: "NODE 66" },
+      { key: "rightTitle", label: "右幅标题（换行）", type: "textarea", default: "THE\nTIME" },
+      { key: "rightSub", label: "右幅副标题", type: "text", default: "IS SHORT" },
+      { key: "rightInk", label: "右幅文字色", type: "color", default: "#111111" },
       { key: "radius", label: "圆角", type: "range", default: "0", min: 0, max: 24 },
       {
         key: "shadow",
@@ -1366,17 +1424,37 @@ export const TEMPLATES = [
             ? "box-shadow:14px 14px 0 rgba(0,0,0,.30);"
             : "";
 
-      const panel = (src, label, x) => `
-        <div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:#15181C;${shadowCss}">
-          ${src
-            ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
-            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:3px;color:#6B7280;">${esc(label)}</div>`}
+      const panel = (side, label, x) => {
+        const sourceKey = side === "left" ? "posterLeft" : "posterRight";
+        const modeKey = side === "left" ? "leftMode" : "rightMode";
+        const bgKey = side === "left" ? "leftBg" : "rightBg";
+        const photoKey = side === "left" ? "leftPhoto" : "rightPhoto";
+        const tagKey = side === "left" ? "leftTag" : "rightTag";
+        const titleKey = side === "left" ? "leftTitle" : "rightTitle";
+        const subKey = side === "left" ? "leftSub" : "rightSub";
+        const inkKey = side === "left" ? "leftInk" : "rightInk";
+        const source = v[sourceKey];
+        if (v[modeKey] === "original" && source) {
+          return `<div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:#15181C;${shadowCss}">
+            <img src="${source}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
+          </div>`;
+        }
+        const titleLines = String(v[titleKey] || "").split("\n").filter(Boolean).map((line) => `<div>${rich(line)}</div>`).join("");
+        return `<div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:${v[bgKey] || "#F1F0EA"};${shadowCss};color:${v[inkKey] || "#111"};">
+          ${v[photoKey]
+            ? `<img src="${v[photoKey]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:saturate(80%) contrast(110%);" />
+               <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.52));"></div>`
+            : ""}
+          <div style="position:absolute;left:14px;right:12px;top:14px;font:700 8px/1.2 'Space Mono',ui-monospace,monospace;letter-spacing:1.5px;text-transform:uppercase;">${esc(v[tagKey])}</div>
+          <div style="position:absolute;left:14px;right:12px;top:50px;font:900 ${Math.max(24, Math.min(48, panelW * .18))}px/.82 'Arial Black','Helvetica Neue',Arial,sans-serif;letter-spacing:-2px;text-transform:uppercase;">${titleLines}</div>
+          <div style="position:absolute;left:14px;right:12px;bottom:16px;font:700 9px/1.1 'Space Mono',ui-monospace,monospace;letter-spacing:1.5px;text-transform:uppercase;">${esc(v[subKey])}</div>
         </div>`;
+      };
 
       return `
       <div style="position:absolute;inset:0;background:${v.matColor};overflow:hidden;">
-        ${panel(v.posterLeft, "LEFT", left)}
-        ${panel(v.posterRight, "RIGHT", left + panelW + gap)}
+        ${panel("left", "LEFT", left)}
+        ${panel("right", "RIGHT", left + panelW + gap)}
         ${v.caption
           ? `<div style="position:absolute;left:0;right:0;bottom:34px;text-align:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:4px;color:${v.captionColor};">${esc(v.caption)}</div>`
           : ""}
@@ -1391,19 +1469,30 @@ export const TEMPLATES = [
     styleId: "playful-craft",
     desc: "原图素材模式完整保留四联总览；可编辑模式既能直接使用四张原始单页，也能切换为文字与插画参数化重绘",
     recommend: "系列海报总览 / 活动视觉提案 · 参考原图和四张单页都作为内置素材保留",
+    fieldGroups: {
+      "① 编辑方式与总览": ["replicaMode", "referenceImage", "panelMode", "bg", "gap", "ink", "meta"],
+      "② 单页 1 · Design MORO": ["p1Mode", "p1Poster", "p1Bg", "p1Tag", "p1Title", "p1Sub", "p1Caption", "p1Shape", "p1Color", "p1Art"],
+      "③ 单页 2 · Street Party": ["p2Mode", "p2Poster", "p2Bg", "p2Tag", "p2Title", "p2Sub", "p2Caption", "p2Shape", "p2Color", "p2Art"],
+      "④ 单页 3 · Recharge": ["p3Mode", "p3Poster", "p3Bg", "p3Tag", "p3Title", "p3Sub", "p3Caption", "p3Shape", "p3Color", "p3Art"],
+      "⑤ 单页 4 · Lake Fair": ["p4Mode", "p4Poster", "p4Bg", "p4Tag", "p4Title", "p4Sub", "p4Caption", "p4Shape", "p4Color", "p4Art"],
+    },
     presets: [
       {
         id: "design-moro-quartet",
         name: "复刻 · Design MORO 四联",
         ref: "66-line-event-quartet.png",
         values: {
-          replicaMode: "reference",
+          replicaMode: "editable",
           referenceImage: "assets/inspirations/66-line-event-quartet.png",
-          panelMode: "originals",
+          panelMode: "redraw",
           p1Poster: "assets/inspirations/62-design-moro-lineart.png",
+          p1Mode: "redraw",
           p2Poster: "assets/inspirations/63-street-party-blur.png",
+          p2Mode: "redraw",
           p3Poster: "assets/inspirations/64-recharge-playful-type.png",
+          p3Mode: "redraw",
           p4Poster: "assets/inspirations/65-lake-fair-lineart.png",
+          p4Mode: "redraw",
           bg: "#D9D9D6",
           gap: "12",
           ink: "#111111",
@@ -1440,13 +1529,14 @@ export const TEMPLATES = [
       },
     ],
     fields: [
-      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "总览原图（最高还原）" }, { value: "editable", label: "可编辑四联" }] },
+      { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑四联（推荐）" }, { value: "reference", label: "总览原图对照" }] },
       { key: "referenceImage", label: "四联总览原图（可替换）", type: "image", default: "assets/inspirations/66-line-event-quartet.png" },
-      { key: "panelMode", label: "可编辑四联内容", type: "select", default: "originals", options: [{ value: "originals", label: "四张原始单页" }, { value: "redraw", label: "参数化重绘" }] },
+      { key: "panelMode", label: "四联内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "四张原始单页" }] },
       { key: "bg", label: "总览衬底", type: "color", default: "#D9D9D6" },
       { key: "gap", label: "四联间距", type: "range", default: "12", min: 0, max: 28 },
       { key: "ink", label: "默认文字色", type: "color", default: "#111111" },
       { key: "p1Bg", label: "① Design MORO 背景", type: "color", default: "#FFFFFF" },
+      { key: "p1Mode", label: "① 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p1Tag", label: "① 眉题", type: "text", default: "DESIGN MORO" },
       { key: "p1Title", label: "① 标题", type: "textarea", default: "What should we design?" },
       { key: "p1Sub", label: "① 分类小字", type: "textarea", default: "Branding  Poster  Editorial" },
@@ -1456,6 +1546,7 @@ export const TEMPLATES = [
       { key: "p1Poster", label: "① 原始单页（可替换）", type: "image", default: "assets/inspirations/62-design-moro-lineart.png" },
       { key: "p1Art", label: "① 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p2Bg", label: "② Street Party 背景", type: "color", default: "#F7F7F4" },
+      { key: "p2Mode", label: "② 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p2Tag", label: "② 眉题", type: "text", default: "53 STREET PARTY" },
       { key: "p2Title", label: "② 标题", type: "textarea", default: "100 Possibilities" },
       { key: "p2Sub", label: "② 副标题", type: "textarea", default: "in the Vicinity" },
@@ -1465,6 +1556,7 @@ export const TEMPLATES = [
       { key: "p2Poster", label: "② 原始单页（可替换）", type: "image", default: "assets/inspirations/63-street-party-blur.png" },
       { key: "p2Art", label: "② 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p3Bg", label: "③ Recharge 背景", type: "color", default: "#F8F8F6" },
+      { key: "p3Mode", label: "③ 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p3Tag", label: "③ 眉题", type: "text", default: "PLAN : POOOD" },
       { key: "p3Title", label: "③ 标题", type: "textarea", default: "Time to 按需\nplay, 嬉戏, recharge" },
       { key: "p3Sub", label: "③ 副标题", type: "textarea", default: "the 呼吸. day." },
@@ -1474,6 +1566,7 @@ export const TEMPLATES = [
       { key: "p3Poster", label: "③ 原始单页（可替换）", type: "image", default: "assets/inspirations/64-recharge-playful-type.png" },
       { key: "p3Art", label: "③ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p4Bg", label: "④ 湖集背景", type: "color", default: "#F3F3F0" },
+      { key: "p4Mode", label: "④ 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p4Tag", label: "④ 眉题", type: "text", default: "湖集 HU FAIR" },
       { key: "p4Title", label: "④ 标题", type: "textarea", default: "在湖集\n划个水" },
       { key: "p4Sub", label: "④ 副标题", type: "textarea", default: "At the lake\ndraw a water" },
@@ -1501,7 +1594,8 @@ export const TEMPLATES = [
       const panel = (index, x, y) => {
         const bg = v[`p${index}Bg`] || "#fff";
         const poster = v[`p${index}Poster`];
-        if (v.panelMode !== "redraw" && poster) {
+        const panelMode = v[`p${index}Mode`] || v.panelMode || "redraw";
+        if (panelMode !== "redraw" && poster) {
           return `<section style="position:absolute;left:${x}px;top:${y}px;width:${panelW}px;height:${panelH}px;background:#F7F7F4;overflow:hidden;">
             <img src="${poster}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;" />
           </section>`;

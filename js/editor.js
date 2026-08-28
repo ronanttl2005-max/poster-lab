@@ -88,6 +88,36 @@ function imageAdjustControls(tpl, field, values) {
   </div>`;
 }
 
+function renderEditorFields(tpl, values) {
+  const fieldMap = new Map(tpl.fields.map((field) => [field.key, field]));
+  const groups = Object.entries(tpl.fieldGroups || {}).map(([label, keys]) => ({
+    label,
+    fields: (keys || []).map((key) => fieldMap.get(key)).filter(Boolean),
+  }));
+  const remaining = tpl.fields.filter((field) => !groups.some((group) => group.fields.includes(field)));
+  if (remaining.length) groups.push({ label: "编辑参数", fields: remaining });
+  return groups.map((group) => `<section class="editor-field-group" style="margin:14px 0 16px;padding:12px 12px 2px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.48);">
+      <h4 style="margin:0 0 10px;color:var(--text-2);font-family:var(--mono);font-size:10px;letter-spacing:.12em;font-weight:600;">${esc(group.label)}</h4>
+      ${group.fields.map((f) => {
+        const val = values[f.key] ?? f.default;
+        const inputId = `field-${tpl.id}-${f.key}`.replace(/[^a-z0-9_-]/gi, "-");
+        if (f.type === "textarea")
+          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><textarea id="${inputId}" data-k="${esc(f.key)}">${esc(val)}</textarea></div>`;
+        if (f.type === "color")
+          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="color" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
+        if (f.type === "image")
+          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="file" accept="image/*" data-k="${esc(f.key)}" data-type="image" />${imageAdjustControls(tpl, f, values)}</div>`;
+        if (f.type === "select")
+          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><select id="${inputId}" data-k="${esc(f.key)}">${f.options
+            .map((o) => `<option value="${esc(o.value)}" ${o.value === val ? "selected" : ""}>${esc(o.label)}</option>`)
+            .join("")}</select></div>`;
+        if (f.type === "range")
+          return `<div class="field"><label for="${inputId}">${esc(f.label)}（${esc(val)}）</label><input id="${inputId}" type="range" data-k="${esc(f.key)}" min="${esc(f.min)}" max="${esc(f.max)}" value="${esc(val)}" /></div>`;
+        return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="text" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
+      }).join("")}
+    </section>`).join("");
+}
+
 function applyImageAdjustments(stage, tpl, values) {
   tpl.fields.filter((field) => field.type === "image").forEach((field) => {
     const source = values[field.key];
@@ -229,25 +259,7 @@ export function mountEditor(root, initialId, initialPresetId) {
             )}）</option>
             </select></div>`
         : "") +
-      tpl.fields
-        .map((f) => {
-          const val = v[f.key] ?? f.default;
-          const inputId = `field-${currentId}-${f.key}`.replace(/[^a-z0-9_-]/gi, "-");
-          if (f.type === "textarea")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><textarea id="${inputId}" data-k="${esc(f.key)}">${esc(val)}</textarea></div>`;
-          if (f.type === "color")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="color" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
-          if (f.type === "image")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="file" accept="image/*" data-k="${esc(f.key)}" data-type="image" />${imageAdjustControls(tpl, f, v)}</div>`;
-          if (f.type === "select")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><select id="${inputId}" data-k="${esc(f.key)}">${f.options
-              .map((o) => `<option value="${esc(o.value)}" ${o.value === val ? "selected" : ""}>${esc(o.label)}</option>`)
-              .join("")}</select></div>`;
-          if (f.type === "range")
-            return `<div class="field"><label for="${inputId}">${esc(f.label)}（${esc(val)}）</label><input id="${inputId}" type="range" data-k="${esc(f.key)}" min="${esc(f.min)}" max="${esc(f.max)}" value="${esc(val)}" /></div>`;
-          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="text" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
-        })
-        .join("");
+      renderEditorFields(tpl, v);
 
     brandPanelCleanup = mountBrandKit(form.querySelector("[data-editor-brand-kit]"), {
       onChange: () => renderPoster(),
