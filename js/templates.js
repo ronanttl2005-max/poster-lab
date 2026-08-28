@@ -11,6 +11,13 @@ const esc = (s = "") =>
 // 支持 *斜体* 标记
 const rich = (s = "") => esc(s).replace(/\*([^*]+)\*/g, "<em>$1</em>");
 
+// 对照片、成品海报或多页拼图类参考，preset 可直接携带原始素材。
+// 这样「一键复刻」先保证构图与视觉信息 1:1 接近参考；用户再切到可编辑重绘模式改字、换图。
+const referenceCanvas = (src, bg = "#FFFFFF", fit = "contain") => `
+  <div style="position:absolute;inset:0;background:${bg};overflow:hidden;">
+    <img src="${esc(src)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:${fit};object-position:center;display:block;" />
+  </div>`;
+
 // SVG 噪点贴图（用于热感风格）
 const NOISE =
   "data:image/svg+xml;utf8," +
@@ -1002,25 +1009,27 @@ export const TEMPLATES = [
     id: "blueprint-spec",
     name: "工业蓝图参数页",
     styleId: "swiss-grid",
-    desc: "蓝图网格 + 淡蓝叠印主体 + 参数卡片。网格密度、配色、参数条目都可改",
-    recommend: "产品说明 / 技术型内容 · 网格底给人「有据可依」的观感",
+    desc: "原图素材模式完整保留 SHUTOFF 拼贴与蓝图页；切到可编辑重绘后，可替换主体、网格、标题和参数信息",
+    recommend: "工业产品 / 设计研究页 · 一键复刻优先保证参考原图的整体构图与比例",
     presets: [
       {
         id: "shutoff-industrial",
         name: "复刻 · SHUTOFF 工业页",
         ref: "28-shutoff-industrial-01.png",
         values: {
-          bg: "#0B1B33",
-          gridColor: "#2C4A70",
-          ink: "#DCE8FA",
-          accent: "#7FA8E8",
-          gridSize: "36",
-          code: "SPEC / 01 — VALVE ASSEMBLY",
-          title: "SHUTOFF",
-          titleEn: "PRECISION FLOW CONTROL",
-          specs: "口径|DN 50\n压力|PN 16\n材质|SS 316L\n温区|-20 ~ 180 ℃",
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/28-shutoff-industrial-01.png",
+          bg: "#F7F8F8",
+          gridColor: "#8ECFE7",
+          ink: "#111111",
+          accent: "#14A7DD",
+          gridSize: "28",
+          code: "DESIGN BEYOND FORM",
+          title: "Finding balance between",
+          titleEn: "FUNCTION, EMOTION AND VISUAL LANGUAGE",
+          specs: "41|08.15\n48|—\nR7|10.30",
           showSpecCards: "yes",
-          foot: "POSTER LAB INDUSTRIAL|DOC 2026-08",
+          foot: "SHUTOFF / INDUSTRIAL STUDY|PURPOSE %79",
         },
       },
       {
@@ -1028,33 +1037,37 @@ export const TEMPLATES = [
         name: "复刻 · 蓝图网格页",
         ref: "31-shutoff-blueprint-grid-02.png",
         values: {
-          bg: "#08121F",
-          gridColor: "#1E3A5F",
-          ink: "#E6F0FF",
-          accent: "#7FA8E8",
-          gridSize: "24",
-          code: "DRAWING / A2 — ISO 128",
-          title: "BLUEPRINT",
-          titleEn: "TECHNICAL DRAWING SERIES",
-          specs: "比例|1 : 20\n投影|第一象限\n单位|mm\n版本|Rev. C",
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/31-shutoff-blueprint-grid-02.png",
+          bg: "#F3F5F7",
+          gridColor: "#62BDE3",
+          ink: "#111111",
+          accent: "#009EE3",
+          gridSize: "36",
+          code: "SHUTOFF / GRID STUDY",
+          title: "Finding balance between",
+          titleEn: "FUNCTION, EMOTION AND VISUAL LANGUAGE",
+          specs: "PURPOSE|%79\nSYSTEM|SHUTOFF\nGRID|12 × 16\nEDITION|02",
           showSpecCards: "yes",
-          foot: "ARCHIVE 002|CONFIDENTIAL",
+          foot: "DESIGN BEYOND FORM|VISUAL LANGUAGE",
         },
       },
     ],
     fields: [
-      { key: "bg", label: "底色", type: "color", default: "#0B1B33" },
-      { key: "gridColor", label: "网格颜色（也是深度模式染色）", type: "color", default: "#1E3A5F" },
-      { key: "gridSize", label: "网格密度", type: "range", default: "36", min: 12, max: 90 },
-      { key: "ink", label: "文字色", type: "color", default: "#DCE8FA" },
-      { key: "accent", label: "强调色", type: "color", default: "#7FA8E8" },
-      { key: "code", label: "顶部编号行", type: "text", default: "SPEC / 01 — VALVE ASSEMBLY" },
+      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/28-shutoff-industrial-01.png" },
+      { key: "bg", label: "底色", type: "color", default: "#F7F8F8" },
+      { key: "gridColor", label: "网格颜色（也是深度模式染色）", type: "color", default: "#8ECFE7" },
+      { key: "gridSize", label: "网格密度", type: "range", default: "28", min: 12, max: 90 },
+      { key: "ink", label: "文字色", type: "color", default: "#111111" },
+      { key: "accent", label: "强调色", type: "color", default: "#14A7DD" },
+      { key: "code", label: "顶部编号行", type: "text", default: "DESIGN BEYOND FORM" },
       // fx 走 blueprint-ghost：抠主体 + 提亮压饱和 + 用 gridColor 淡淡染一层
       { key: "image", label: "主体图（深度模式转蓝图幽灵）", type: "image", default: "", fx: "blueprint-ghost" },
       { key: "imgH", label: "主体高度", type: "range", default: "360", min: 180, max: 520 },
-      { key: "title", label: "大标题", type: "text", default: "SHUTOFF" },
-      { key: "titleEn", label: "副标题", type: "text", default: "PRECISION FLOW CONTROL" },
-      { key: "specs", label: "参数（每行：名称|数值）", type: "textarea", default: "口径|DN 50\n压力|PN 16\n材质|SS 316L\n温区|-20 ~ 180 ℃" },
+      { key: "title", label: "大标题", type: "text", default: "Finding balance between" },
+      { key: "titleEn", label: "副标题", type: "text", default: "FUNCTION, EMOTION AND VISUAL LANGUAGE" },
+      { key: "specs", label: "参数（每行：名称|数值）", type: "textarea", default: "41|08.15\n48|—\nR7|10.30" },
       {
         key: "showSpecCards",
         label: "参数显示方式",
@@ -1065,9 +1078,10 @@ export const TEMPLATES = [
           { value: "no", label: "紧凑列表" },
         ],
       },
-      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "POSTER LAB INDUSTRIAL|DOC 2026-08" },
+      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "SHUTOFF / INDUSTRIAL STUDY|PURPOSE %79" },
     ],
     render: (v) => {
+      if (v.replicaMode !== "editable" && v.referenceImage) return referenceCanvas(v.referenceImage, "#FFFFFF");
       const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
       const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
       const deep = v.imgMode === "deep";
@@ -1125,67 +1139,67 @@ export const TEMPLATES = [
     id: "road-slogan",
     name: "公路标语大字",
     styleId: "brutalist-type",
-    desc: "上图下色块，色块里压超大标语。分割比例可拖，图和文案全可换",
-    recommend: "品牌宣言 / 活动主视觉 · 大字在缩略图下也读得清",
+    desc: "原图素材模式保留 Node 66 双联成品；可编辑重绘忠实采用左幅的雾蓝公路照片、红色叠字与红底黑字对角结构",
+    recommend: "品牌宣言 / 公路摄影 · 先复刻原图，再切换重绘模式替换照片与两组大字",
     presets: [
       {
         id: "node66-road-red",
         name: "复刻 · 66 号公路红",
         ref: "37-node66-road-red-pair.png",
         values: {
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/37-node66-road-red-pair.png",
           bg: "#C8102E",
-          ink: "#FFF6EE",
-          splitRatio: "52",
-          tag: "NODE 66",
-          slogan: "路在脚下\n答案在远处",
-          sloganSize: "84",
-          sub: "THE ROAD IS THE ANSWER",
-          foot: "posterlab.studio|2026",
+          ink: "#111111",
+          topInk: "#E10E12",
+          splitRatio: "60",
+          tag: "BM / 604 / MOVE / NOW",
+          slogan: "THE\nROAD\nIS\nLONG",
+          sloganSize: "94",
+          sub: "THE\nTIME\nIS\nSHORT",
+          foot: "08 / RIVER / PHOTOGRAPHY|AZAM SAM",
         },
       },
     ],
     fields: [
+      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/37-node66-road-red-pair.png" },
       { key: "bg", label: "色块底色", type: "color", default: "#C8102E" },
-      { key: "ink", label: "文字色", type: "color", default: "#FFF6EE" },
+      { key: "ink", label: "下半大字色", type: "color", default: "#111111" },
+      { key: "topInk", label: "上半大字色", type: "color", default: "#E10E12" },
       { key: "photo", label: "上方照片", type: "image", default: "" },
-      { key: "splitRatio", label: "照片占比 %", type: "range", default: "52", min: 25, max: 72 },
-      { key: "tag", label: "角标", type: "text", default: "NODE 66" },
-      { key: "slogan", label: "标语（换行分行）", type: "textarea", default: "路在脚下\n答案在远处" },
-      { key: "sloganSize", label: "标语字号", type: "range", default: "84", min: 44, max: 130 },
-      { key: "sub", label: "英文副标", type: "text", default: "THE ROAD IS THE ANSWER" },
-      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "posterlab.studio|2026" },
+      { key: "splitRatio", label: "照片占比 %", type: "range", default: "60", min: 45, max: 72 },
+      { key: "tag", label: "右侧微型标记（用 / 分行）", type: "text", default: "BM / 604 / MOVE / NOW" },
+      { key: "slogan", label: "上半标语（换行分行）", type: "textarea", default: "THE\nROAD\nIS\nLONG" },
+      { key: "sloganSize", label: "标语字号", type: "range", default: "94", min: 60, max: 124 },
+      { key: "sub", label: "下半标语（换行分行）", type: "textarea", default: "THE\nTIME\nIS\nSHORT" },
+      { key: "foot", label: "左下资料（用 | 分组）", type: "text", default: "08 / RIVER / PHOTOGRAPHY|AZAM SAM" },
     ],
     render: (v) => {
+      if (v.replicaMode !== "editable" && v.referenceImage) return referenceCanvas(v.referenceImage, "#222222");
       const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
       const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
       const lines = String(v.slogan || "").split("\n").filter(Boolean);
-      const size = lim(num(v.sloganSize, 84), 44, 130);
-
-      // 色块要装下标语 + 副标 + 页脚，所以照片占比反过来受标语字号约束
-      const needH = Math.max(1, lines.length) * size * 1.04 + (v.sub ? 44 : 0) + 96 + 56;
-      const maxRatio = Math.max(25, Math.floor(((1000 - needH) / 1000) * 100));
-      const ratio = lim(num(v.splitRatio, 52), 25, Math.min(72, maxRatio));
+      const lowerLines = String(v.sub || "").split("\n").filter(Boolean);
+      const size = lim(num(v.sloganSize, 94), 60, 124);
+      const lowerSize = lim(size * 1.02, 60, 126);
+      const ratio = lim(num(v.splitRatio, 60), 45, 72);
       const photoH = Math.round((ratio / 100) * 1000);
       const [footL, footR] = String(v.foot || "").split("|");
+      const tags = String(v.tag || "").split("/").map((item) => item.trim()).filter(Boolean);
 
       return `
       <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
         ${v.photo
           ? `<img src="${v.photo}" style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;object-fit:cover;display:block;" />`
-          : `<div style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;background:#1A1C20;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:3px;color:#6B7280;">UPLOAD PHOTO</div>`}
-        ${v.tag
-          ? `<div style="position:absolute;left:48px;top:${photoH - 22}px;background:${v.bg};color:${v.ink};font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:3px;padding:9px 16px;">${esc(v.tag)}</div>`
-          : ""}
-        <div style="position:absolute;left:48px;right:48px;top:${photoH + 56}px;">
-          <div style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:${size}px;line-height:1.02;letter-spacing:1px;color:${v.ink};">${lines
+          : `<div style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;background:linear-gradient(180deg,#B7D7DB 0%,#9EC2C6 58%,#6D8F91 100%);"><div style="position:absolute;left:0;right:0;bottom:44px;height:28px;background:#496C6E;opacity:.6;"></div><div style="position:absolute;left:286px;bottom:42px;width:110px;height:42px;background:#26383B;clip-path:polygon(16% 24%,82% 16%,100% 58%,91% 100%,7% 100%,0 60%);"></div></div>`}
+        <div style="position:absolute;left:18px;top:14px;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-size:${size}px;font-weight:900;line-height:.78;letter-spacing:-7px;color:${v.topInk};">${lines
             .map((l) => `<div>${rich(l)}</div>`)
             .join("")}</div>
-          ${v.sub
-            ? `<div style="margin-top:16px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:13px;letter-spacing:4px;color:${v.ink};opacity:.78;">${esc(v.sub)}</div>`
-            : ""}
-        </div>
-        <div style="position:absolute;bottom:38px;left:48px;right:48px;display:flex;justify-content:space-between;border-top:2px solid ${v.ink};padding-top:12px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.ink};">
-          <span>${esc(footL || "")}</span><span>${esc(footR || "")}</span>
+        <div style="position:absolute;right:12px;top:42px;display:grid;gap:74px;text-align:right;font:700 8px/1 'Space Mono',ui-monospace,monospace;color:${v.topInk};text-transform:uppercase;">${tags.map((item) => `<span>${esc(item)}</span>`).join("")}</div>
+        <div style="position:absolute;right:12px;bottom:10px;text-align:right;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-size:${lowerSize}px;font-weight:900;line-height:.76;letter-spacing:-8px;color:${v.ink};">${lowerLines.map((l) => `<div>${rich(l)}</div>`).join("")}</div>
+        <div style="position:absolute;left:14px;top:${photoH + 48}px;width:116px;font:700 9px/4.8 'Space Mono',ui-monospace,monospace;color:${v.ink};text-transform:uppercase;">
+          <div>${esc(footL || "")}</div><div>${esc(footR || "")}</div>
         </div>
       </div>`;
     },
@@ -1195,80 +1209,81 @@ export const TEMPLATES = [
     id: "data-bar-photo",
     name: "满幅照片数据条",
     styleId: "brutalist-type",
-    desc: "整幅照片压暗，中间横一条数据栏。数据条位置、颜色、条目都能改",
-    recommend: "团队介绍 / 年度回顾 · 数字放在照片上比单独列表更有说服力",
+    desc: "原图素材模式保留 Node 66 山景成品；可编辑重绘还原亮黄仪表条、底部 ABOUT US 文案与右下品牌字标",
+    recommend: "户外品牌 / 团队介绍 · 原图模式用于高相似复刻，重绘模式可换成自己的山景和数据",
     presets: [
       {
         id: "node66-about-us",
         name: "复刻 · ABOUT US 山景",
         ref: "40-node66-about-us-mountain.png",
         values: {
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/40-node66-about-us-mountain.png",
           bg: "#101418",
-          barY: "620",
-          barColor: "#C8102E",
-          ink: "#FFF6EE",
-          shade: "38",
-          kicker: "ABOUT US",
-          title: "我们在路上\n已经六年",
-          stats: "6|年\n128|站点\n42|城市",
-          body: "从一辆改装面包车开始，我们沿着国道记录沿途的店、人和天气。",
-          foot: "NODE 66 STUDIO|since 2020",
+          barY: "455",
+          barColor: "#FFE500",
+          ink: "#FFE500",
+          shade: "18",
+          kicker: "",
+          title: "ABOUT US",
+          titleSize: "66",
+          stats: "DISTANCE 10KM|ELEVATION GAIN 890M\nHIKE TIME 02:23:55|FUEL UP. KEEP MOVING.\nTEMPERATURE +10C|WWW.NODE66.COM",
+          body: "Node 66 is built at intersections — of people, of places, of paths crossed for the first time. The road is the promise that something worth finding is always just ahead. Two shapes. One mark. Endless roads.",
+          foot: "WWW.NODE66.COM|node⁶⁶",
         },
       },
     ],
     fields: [
+      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/40-node66-about-us-mountain.png" },
       { key: "bg", label: "兜底底色", type: "color", default: "#101418" },
       { key: "photo", label: "满幅照片", type: "image", default: "" },
-      { key: "shade", label: "照片压暗程度", type: "range", default: "38", min: 0, max: 80 },
-      { key: "barY", label: "数据条位置", type: "range", default: "620", min: 220, max: 780 },
-      { key: "barColor", label: "数据条颜色", type: "color", default: "#C8102E" },
-      { key: "ink", label: "文字色", type: "color", default: "#FFF6EE" },
-      { key: "kicker", label: "顶部小标", type: "text", default: "ABOUT US" },
-      { key: "title", label: "标题（换行分行）", type: "textarea", default: "我们在路上\n已经六年" },
-      { key: "titleSize", label: "标题字号", type: "range", default: "58", min: 32, max: 96 },
-      { key: "stats", label: "数据（每行：数值|单位）", type: "textarea", default: "6|年\n128|站点\n42|城市" },
-      { key: "body", label: "正文", type: "textarea", default: "从一辆改装面包车开始，我们沿着国道记录沿途的店、人和天气。" },
-      { key: "foot", label: "页脚（用 | 分左右）", type: "text", default: "NODE 66 STUDIO|since 2020" },
+      { key: "shade", label: "照片压暗程度", type: "range", default: "18", min: 0, max: 80 },
+      { key: "barY", label: "数据条位置", type: "range", default: "455", min: 300, max: 650 },
+      { key: "barColor", label: "数据条颜色", type: "color", default: "#FFE500" },
+      { key: "ink", label: "文字色", type: "color", default: "#FFE500" },
+      { key: "kicker", label: "顶部小标（可留空）", type: "text", default: "" },
+      { key: "title", label: "底部标题", type: "textarea", default: "ABOUT US" },
+      { key: "titleSize", label: "标题字号", type: "range", default: "66", min: 42, max: 92 },
+      { key: "stats", label: "数据条（三行：左|右）", type: "textarea", default: "DISTANCE 10KM|ELEVATION GAIN 890M\nHIKE TIME 02:23:55|FUEL UP. KEEP MOVING.\nTEMPERATURE +10C|WWW.NODE66.COM" },
+      { key: "body", label: "底部正文", type: "textarea", default: "Node 66 is built at intersections — of people, of places, of paths crossed for the first time. The road is the promise that something worth finding is always just ahead. Two shapes. One mark. Endless roads." },
+      { key: "foot", label: "网址与右下字标（用 | 分左右）", type: "text", default: "WWW.NODE66.COM|node⁶⁶" },
     ],
     render: (v) => {
+      if (v.replicaMode !== "editable" && v.referenceImage) return referenceCanvas(v.referenceImage, "#101418");
       const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
       const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
-      const titleSize = lim(num(v.titleSize, 58), 32, 96);
+      const titleSize = lim(num(v.titleSize, 66), 42, 92);
       const titleLines = String(v.title || "").split("\n").filter(Boolean);
-      const shade = lim(num(v.shade, 38), 0, 80) / 100;
-      const barH = 96;
-
-      // 数据条下面还要放标题和正文，条子不能贴到底
-      const belowH = Math.max(1, titleLines.length) * titleSize * 1.1 + (v.body ? 62 : 0) + 92;
-      const barY = lim(num(v.barY, 620), 200, Math.max(200, 1000 - barH - belowH));
+      const shade = lim(num(v.shade, 18), 0, 80) / 100;
+      const barH = 104;
+      const barY = lim(num(v.barY, 455), 300, 650);
       const stats = String(v.stats || "").split("\n").filter(Boolean).map((l) => l.split("|"));
       const [footL, footR] = String(v.foot || "").split("|");
 
       return `
       <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
-        ${v.photo ? `<img src="${v.photo}" style="position:absolute;inset:0;width:750px;height:1000px;object-fit:cover;display:block;" />` : ""}
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,${(shade * 1.1).toFixed(2)}) 0%,rgba(0,0,0,${(shade * 0.5).toFixed(2)}) 45%,rgba(0,0,0,${(shade * 1.4).toFixed(2)}) 100%);"></div>
+        ${v.photo ? `<img src="${v.photo}" style="position:absolute;inset:0;width:750px;height:1000px;object-fit:cover;display:block;" />` : `<div style="position:absolute;inset:0;background:linear-gradient(180deg,#D7E4DF 0%,#BFC9BD 28%,#4F5B45 45%,#151B14 78%,#0B0E0B 100%);"><div style="position:absolute;left:-80px;right:-70px;top:235px;height:340px;background:#273326;clip-path:polygon(0 74%,18% 44%,37% 53%,52% 18%,67% 48%,80% 31%,100% 70%,100% 100%,0 100%);"></div></div>`}
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,${(shade * .4).toFixed(2)}) 0%,rgba(0,0,0,${(shade * .15).toFixed(2)}) 46%,rgba(0,0,0,${(shade * 1.65).toFixed(2)}) 100%);"></div>
         <div style="position:absolute;top:52px;left:52px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:5px;color:${v.ink};opacity:.85;">${esc(v.kicker)}</div>
-        <div style="position:absolute;left:0;right:0;top:${barY}px;height:${barH}px;background:${v.barColor};display:flex;align-items:center;justify-content:space-around;padding:0 40px;">
+        <div style="position:absolute;left:0;right:0;top:${barY}px;height:${barH}px;background:${v.barColor};display:grid;grid-template-columns:1fr 1fr 1.15fr;align-items:center;gap:24px;padding:0 20px;color:#111;overflow:hidden;">
           ${stats
             .map(
-              ([n, unit]) => `<div style="text-align:center;color:${v.ink};">
-                <span style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:40px;line-height:1;">${esc(n || "")}</span>
-                <span style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;margin-left:5px;opacity:.9;">${esc(unit || "")}</span>
-              </div>`
+              ([n, unit]) => `<div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;line-height:1.16;text-transform:uppercase;"><div>${esc(n || "")}</div><div>${esc(unit || "")}</div></div>`
             )
             .join("")}
+          <div style="position:absolute;right:-28px;bottom:-32px;font-family:'Arial Black',Impact,sans-serif;font-size:116px;line-height:1;color:${v.barColor === v.ink ? "#FFF" : v.ink};opacity:.9;">TIME</div>
         </div>
-        <div style="position:absolute;left:52px;right:52px;top:${barY + barH + 34}px;">
-          <div style="font-size:${titleSize}px;font-weight:900;line-height:1.1;color:${v.ink};">${titleLines
+        <div style="position:absolute;left:34px;right:34px;bottom:68px;">
+          <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:${titleSize}px;font-weight:400;line-height:1;color:${v.ink};letter-spacing:2px;">${titleLines
             .map((l) => `<div>${rich(l)}</div>`)
             .join("")}</div>
           ${v.body
-            ? `<div style="margin-top:16px;font-size:14px;line-height:1.8;color:${v.ink};opacity:.86;max-width:540px;white-space:pre-wrap;">${esc(v.body)}</div>`
+            ? `<div style="margin-top:14px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;line-height:1.2;color:${v.ink};max-width:520px;white-space:pre-wrap;">${esc(v.body)}</div>`
             : ""}
         </div>
-        <div style="position:absolute;bottom:38px;left:52px;right:52px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:2px;color:${v.ink};opacity:.8;">
-          <span>${esc(footL || "")}</span><span>${esc(footR || "")}</span>
+        <div style="position:absolute;bottom:18px;left:34px;right:26px;display:flex;justify-content:space-between;align-items:flex-end;color:${v.ink};">
+          <span style="font:700 9px/1 'Space Mono',ui-monospace,monospace;">${esc(footL || "")}</span><span style="font:900 44px/.8 'Arial Black',Arial,sans-serif;letter-spacing:-4px;">${esc(footR || "")}</span>
         </div>
       </div>`;
     },
@@ -1278,46 +1293,51 @@ export const TEMPLATES = [
     id: "diptych-pair",
     name: "双联并置展示",
     styleId: "brutalist-type",
-    desc: "两张海报并排摆在衬纸上，做系列稿的对照展示。间距、投影、圆角、缩放都可调",
-    recommend: "作品集内页 / 系列稿提案 · 一张图讲完「这是一套」",
+    desc: "原图素材模式完整保留 Node 66 黑底双联展示；可编辑重绘可替换左右成品并调整黑场、间距和缩放",
+    recommend: "作品集内页 / 系列稿提案 · 原图模式优先还原参考中的大黑场与两张海报比例",
     presets: [
       {
         id: "node66-road-pair",
         name: "复刻 · 66 号公路双联",
         ref: "37-node66-road-red-pair.png",
         values: {
-          matColor: "#E7E3DA",
-          gap: "26",
-          scale: "82",
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/37-node66-road-red-pair.png",
+          matColor: "#222222",
+          gap: "18",
+          scale: "72",
           radius: "0",
-          shadow: "soft",
-          caption: "NODE 66 — POSTER SERIES 01 / 02",
-          captionColor: "#3A3A38",
+          shadow: "none",
+          caption: "",
+          captionColor: "#D8D8D4",
         },
       },
     ],
     fields: [
-      { key: "matColor", label: "衬纸颜色", type: "color", default: "#E7E3DA" },
+      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "原图素材（最高还原）" }, { value: "editable", label: "可编辑重绘" }] },
+      { key: "referenceImage", label: "原图素材（可替换）", type: "image", default: "assets/inspirations/37-node66-road-red-pair.png" },
+      { key: "matColor", label: "衬纸颜色", type: "color", default: "#222222" },
       { key: "posterLeft", label: "左幅图片", type: "image", default: "" },
       { key: "posterRight", label: "右幅图片", type: "image", default: "" },
-      { key: "gap", label: "两幅间距", type: "range", default: "26", min: 0, max: 80 },
-      { key: "scale", label: "整体缩放 %", type: "range", default: "82", min: 55, max: 100 },
+      { key: "gap", label: "两幅间距", type: "range", default: "18", min: 0, max: 80 },
+      { key: "scale", label: "整体缩放 %", type: "range", default: "72", min: 55, max: 100 },
       { key: "radius", label: "圆角", type: "range", default: "0", min: 0, max: 24 },
       {
         key: "shadow",
         label: "投影",
         type: "select",
-        default: "soft",
+        default: "none",
         options: [
           { value: "none", label: "无" },
           { value: "soft", label: "柔和" },
           { value: "hard", label: "硬边（错位色块）" },
         ],
       },
-      { key: "caption", label: "底部说明", type: "text", default: "POSTER SERIES 01 / 02" },
-      { key: "captionColor", label: "说明文字色", type: "color", default: "#3A3A38" },
+      { key: "caption", label: "底部说明（原图留空）", type: "text", default: "" },
+      { key: "captionColor", label: "说明文字色", type: "color", default: "#D8D8D4" },
     ],
     render: (v) => {
+      if (v.replicaMode !== "editable" && v.referenceImage) return referenceCanvas(v.referenceImage, "#222222");
       const num = (val, fallback) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
       const lim = (val, lo, hi) => Math.min(Math.max(val, lo), hi);
       const gap = lim(num(v.gap, 26), 0, 80);
@@ -1369,14 +1389,21 @@ export const TEMPLATES = [
     id: "line-event-quartet",
     name: "线稿活动四联",
     styleId: "playful-craft",
-    desc: "Design MORO / 湖集系列：2×2 四联画布，四个子海报的色块、插画位、标题和说明都可单独编辑",
-    recommend: "系列海报总览 / 活动视觉提案 · 适合把四张同主题海报一次排成一张总览图",
+    desc: "原图素材模式完整保留四联总览；可编辑模式既能直接使用四张原始单页，也能切换为文字与插画参数化重绘",
+    recommend: "系列海报总览 / 活动视觉提案 · 参考原图和四张单页都作为内置素材保留",
     presets: [
       {
         id: "design-moro-quartet",
         name: "复刻 · Design MORO 四联",
         ref: "66-line-event-quartet.png",
         values: {
+          replicaMode: "reference",
+          referenceImage: "assets/inspirations/66-line-event-quartet.png",
+          panelMode: "originals",
+          p1Poster: "assets/inspirations/62-design-moro-lineart.png",
+          p2Poster: "assets/inspirations/63-street-party-blur.png",
+          p3Poster: "assets/inspirations/64-recharge-playful-type.png",
+          p4Poster: "assets/inspirations/65-lake-fair-lineart.png",
           bg: "#D9D9D6",
           gap: "12",
           ink: "#111111",
@@ -1413,6 +1440,9 @@ export const TEMPLATES = [
       },
     ],
     fields: [
+      { key: "replicaMode", label: "复刻方式", type: "select", default: "reference", options: [{ value: "reference", label: "总览原图（最高还原）" }, { value: "editable", label: "可编辑四联" }] },
+      { key: "referenceImage", label: "四联总览原图（可替换）", type: "image", default: "assets/inspirations/66-line-event-quartet.png" },
+      { key: "panelMode", label: "可编辑四联内容", type: "select", default: "originals", options: [{ value: "originals", label: "四张原始单页" }, { value: "redraw", label: "参数化重绘" }] },
       { key: "bg", label: "总览衬底", type: "color", default: "#D9D9D6" },
       { key: "gap", label: "四联间距", type: "range", default: "12", min: 0, max: 28 },
       { key: "ink", label: "默认文字色", type: "color", default: "#111111" },
@@ -1423,6 +1453,7 @@ export const TEMPLATES = [
       { key: "p1Caption", label: "① 底部说明", type: "text", default: "since 2021.03.03" },
       { key: "p1Shape", label: "① 插画形状", type: "select", default: "tent", options: [{ value: "tent", label: "帐篷" }, { value: "slide", label: "滑梯" }, { value: "people", label: "人物" }, { value: "swimmer", label: "湖水人物" }] },
       { key: "p1Color", label: "① 插画主色", type: "color", default: "#E8624B" },
+      { key: "p1Poster", label: "① 原始单页（可替换）", type: "image", default: "assets/inspirations/62-design-moro-lineart.png" },
       { key: "p1Art", label: "① 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p2Bg", label: "② Street Party 背景", type: "color", default: "#F7F7F4" },
       { key: "p2Tag", label: "② 眉题", type: "text", default: "53 STREET PARTY" },
@@ -1431,6 +1462,7 @@ export const TEMPLATES = [
       { key: "p2Caption", label: "② 活动信息", type: "textarea", default: "街区市集 · slowtalk · 工作坊" },
       { key: "p2Shape", label: "② 插画形状", type: "select", default: "people", options: [{ value: "people", label: "模糊人物" }, { value: "slide", label: "滑梯" }, { value: "swimmer", label: "运动人物" }, { value: "tent", label: "帐篷" }] },
       { key: "p2Color", label: "② 插画主色", type: "color", default: "#1F9DE4" },
+      { key: "p2Poster", label: "② 原始单页（可替换）", type: "image", default: "assets/inspirations/63-street-party-blur.png" },
       { key: "p2Art", label: "② 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p3Bg", label: "③ Recharge 背景", type: "color", default: "#F8F8F6" },
       { key: "p3Tag", label: "③ 眉题", type: "text", default: "PLAN : POOOD" },
@@ -1439,6 +1471,7 @@ export const TEMPLATES = [
       { key: "p3Caption", label: "③ 活动信息", type: "textarea", default: "市集 · 分享会 · workshop" },
       { key: "p3Shape", label: "③ 插画形状", type: "select", default: "chairs", options: [{ value: "chairs", label: "椅子组" }, { value: "people", label: "人物组" }, { value: "tent", label: "帐篷" }, { value: "slide", label: "滑梯" }] },
       { key: "p3Color", label: "③ 插画主色", type: "color", default: "#E48AB7" },
+      { key: "p3Poster", label: "③ 原始单页（可替换）", type: "image", default: "assets/inspirations/64-recharge-playful-type.png" },
       { key: "p3Art", label: "③ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p4Bg", label: "④ 湖集背景", type: "color", default: "#F3F3F0" },
       { key: "p4Tag", label: "④ 眉题", type: "text", default: "湖集 HU FAIR" },
@@ -1447,10 +1480,12 @@ export const TEMPLATES = [
       { key: "p4Caption", label: "④ 活动信息", type: "textarea", default: "Lake water · music · alcohol" },
       { key: "p4Shape", label: "④ 插画形状", type: "select", default: "swimmer", options: [{ value: "swimmer", label: "游泳人物" }, { value: "people", label: "人物组" }, { value: "slide", label: "滑板" }, { value: "tent", label: "帐篷" }] },
       { key: "p4Color", label: "④ 插画主色", type: "color", default: "#18A7DD" },
+      { key: "p4Poster", label: "④ 原始单页（可替换）", type: "image", default: "assets/inspirations/65-lake-fair-lineart.png" },
       { key: "p4Art", label: "④ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "meta", label: "总览脚注", type: "text", default: "POSTER LAB / LINE EVENT SERIES / 2026" },
     ],
     render: (v) => {
+      if (v.replicaMode !== "editable" && v.referenceImage) return referenceCanvas(v.referenceImage, "#BDBDBD");
       const n = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
       const gap = Math.min(Math.max(n(v.gap, 12), 0), 28);
       const panelW = (750 - gap * 3) / 2;
@@ -1465,6 +1500,12 @@ export const TEMPLATES = [
       };
       const panel = (index, x, y) => {
         const bg = v[`p${index}Bg`] || "#fff";
+        const poster = v[`p${index}Poster`];
+        if (v.panelMode !== "redraw" && poster) {
+          return `<section style="position:absolute;left:${x}px;top:${y}px;width:${panelW}px;height:${panelH}px;background:#F7F7F4;overflow:hidden;">
+            <img src="${poster}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;" />
+          </section>`;
+        }
         const title = String(v[`p${index}Title`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
         const sub = String(v[`p${index}Sub`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
         const art = v[`p${index}Art`]

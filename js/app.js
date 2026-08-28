@@ -2,6 +2,8 @@ import { STYLES as BUNDLED_STYLES } from "../data/styles.js";
 import { INSPIRATIONS as BUNDLED_INSPIRATIONS } from "../data/inspirations.js";
 import { FOLDERS as BUNDLED_FOLDERS } from "../data/folders.js";
 import { mountEditor } from "./editor.js";
+import { BRAND_PROFILES, BRAND_PROFILE_MAP, BRAND_SETS } from "./brands.js";
+import { setBrandOptions } from "./brand-export.js";
 import {
   loadCatalog,
   apiWrite,
@@ -118,6 +120,7 @@ const routes = {
   folders: renderFolders,
   styles: renderStyles,
   editor: renderEditor,
+  brandsets: renderBrandSets,
   tools: renderTools,
   skills: renderSkills,
   workflow: renderWorkflow,
@@ -1003,6 +1006,45 @@ function renderEditor(param) {
     tplId ? safeId(tplId) : undefined,
     presetId ? safeId(presetId) : undefined
   );
+}
+
+// ---------------- brand kits ----------------
+function renderBrandSets() {
+  app.innerHTML = `
+    <div class="page-head">
+      <div class="en">Brand Kits</div>
+      <h1>品牌套图</h1>
+      <p>把 logo、叠放方式、边距和一组安全的品牌色收成预设。应用后，模板工坊与艺术工具的 PNG 导出会沿用同一套品牌配置。</p>
+    </div>
+    <div class="brand-library">
+      <div class="brand-library-intro">
+        <span class="brand-library-kicker">YOUR ASSETS</span>
+        <h2>已上传的品牌资产</h2>
+        <p>当前 Demo 已清理为真正透明的 PNG：和光保留彩色轨迹，LeaveBox 去掉了烘焙的棋盘格背景。</p>
+        <div class="brand-library-assets">
+          ${BRAND_PROFILES.map((brand) => `<div class="brand-asset-card"><div class="brand-asset-preview"><img src="${brand.logo}" alt="${escapeHtml(brand.name)} logo" /></div><div><strong>${escapeHtml(brand.name)}</strong><small>${escapeHtml(brand.nameEn)}</small></div></div>`).join("")}
+        </div>
+      </div>
+      <div class="brand-set-grid">
+        ${BRAND_SETS.map((set) => {
+          const brand = BRAND_PROFILE_MAP[set.brandId];
+          return `<article class="brand-set-card">
+            <div class="brand-set-card-head"><span class="brand-set-dot" style="background:${brand?.color || "var(--accent)"}"></span><span>${escapeHtml(brand?.name || "品牌")}</span></div>
+            <div class="brand-set-logo"><img src="${brand?.logo || ""}" alt="${escapeHtml(set.name)}" /></div>
+            <h3>${escapeHtml(set.name)}</h3>
+            <p>${escapeHtml(set.desc)}</p>
+            <div class="brand-set-tags"><span>${set.options.position}</span><span>${set.options.blendMode === "normal" ? "正常叠放" : set.options.blendMode}</span><span>${set.options.scale}% logo</span></div>
+            <button type="button" class="btn btn-primary brand-set-use" data-set-id="${escapeHtml(set.id)}">应用到模板工坊</button>
+          </article>`;
+        }).join("")}
+      </div>
+    </div>`;
+  app.querySelectorAll(".brand-set-use").forEach((button) => button.addEventListener("click", () => {
+    const set = BRAND_SETS.find((item) => item.id === button.dataset.setId);
+    if (!set) return;
+    setBrandOptions({ ...set.options, setId: set.id });
+    location.hash = "#/editor";
+  }));
 }
 
 // ---------------- tools page ----------------

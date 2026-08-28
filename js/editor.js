@@ -1,6 +1,7 @@
 import { TEMPLATES, TEMPLATE_MAP } from "./templates.js";
 import { STYLE_MAP } from "../data/styles.js";
 import { processImage, RECIPE_LABELS } from "./poster-fx.js";
+import { mountBrandKit, renderBrandOverlay } from "./brand-kit.js";
 
 const esc = (value) =>
   String(value ?? "").replace(
@@ -168,6 +169,7 @@ export function mountEditor(root, initialId, initialPresetId) {
   const stage = root.querySelector("#poster-stage");
   const scaler = root.querySelector("#stage-scaler");
   const stageTransform = root.querySelector("#stage-transform");
+  let brandPanelCleanup = () => {};
 
   function fitStage() {
     if (!root.isConnected) return;
@@ -203,6 +205,7 @@ export function mountEditor(root, initialId, initialPresetId) {
   function renderForm() {
     const tpl = TEMPLATE_MAP[currentId];
     const v = getValues(tpl);
+    brandPanelCleanup();
     form.innerHTML =
       `<p style="font-size:12px;color:var(--text-2);margin-bottom:${tpl.recommend ? 8 : 14}px;">${esc(tpl.desc)}</p>` +
       (tpl.recommend
@@ -214,6 +217,7 @@ export function mountEditor(root, initialId, initialPresetId) {
             .join("")}</div>`
         : "") +
       customPalettePanel(tpl) +
+      `<div data-editor-brand-kit></div>` +
       (fxFields(tpl).length
         ? `<div class="field"><label for="field-imgmode">上传图处理方式</label>
             <select id="field-imgmode" data-imgmode>
@@ -244,6 +248,18 @@ export function mountEditor(root, initialId, initialPresetId) {
           return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="text" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
         })
         .join("");
+
+    brandPanelCleanup = mountBrandKit(form.querySelector("[data-editor-brand-kit]"), {
+      onChange: () => renderPoster(),
+      onApplySet: (set) => {
+        // 品牌套图预设只覆盖模板中存在的同名安全字段；其余参数保持用户当前值。
+        Object.entries(set.fields || {}).forEach(([key, value]) => {
+          if (tpl.fields.some((field) => field.key === key)) v[key] = value;
+        });
+        renderForm();
+        renderPoster();
+      },
+    });
 
     form.querySelectorAll(".preset-chip").forEach((chip) =>
       chip.addEventListener("click", () => {
@@ -380,6 +396,9 @@ export function mountEditor(root, initialId, initialPresetId) {
     const values = getValues(tpl);
     stage.innerHTML = tpl.render(values);
     applyImageAdjustments(stage, tpl, values);
+    // 原图素材复刻模式的目标是与参考图像素级接近，不额外叠加工作区的品牌 logo；
+    // 切换到可编辑重绘后，品牌套图才恢复为正常的导出/预览叠加。
+    renderBrandOverlay(stage, values.replicaMode === "reference" ? { enabled: false } : undefined);
   }
 
   function renderRefs() {
@@ -458,5 +477,8 @@ export function mountEditor(root, initialId, initialPresetId) {
   renderRefs();
   fitStage();
 
-  return () => window.removeEventListener("resize", fitStage);
+  return () => {
+    brandPanelCleanup();
+    window.removeEventListener("resize", fitStage);
+  };
 }

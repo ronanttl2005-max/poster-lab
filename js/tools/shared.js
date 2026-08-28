@@ -344,7 +344,14 @@ export function stickerOutline(renderedSubjectCanvas, subject, layers = 3, gap =
 }
 
 // ---------- 导出 ----------
+// 所有 canvas / SVG→PNG 导出都会读取当前品牌套图配置。
+// 未启用 logo 时保持原来的同步导出行为；启用后异步等待透明 PNG 加载并合成。
 export function downloadCanvasPNG(canvas, filename = "poster-lab-tool.png", scale = 1) {
+  const { getBrandOptions, downloadBrandedCanvasPNG } = globalThis.PosterLabBrandExport || {};
+  const options = getBrandOptions?.();
+  if (options?.enabled && options.brandId) {
+    return downloadBrandedCanvasPNG(canvas, filename, scale, options);
+  }
   let target = canvas;
   if (scale !== 1) {
     target = makeCanvas(canvas.width * scale, canvas.height * scale);
@@ -356,6 +363,7 @@ export function downloadCanvasPNG(canvas, filename = "poster-lab-tool.png", scal
   a.download = filename;
   a.href = target.toDataURL("image/png");
   a.click();
+  return target;
 }
 export function downloadSVG(svgEl, filename = "poster-lab-tool.svg") {
   const blob = new Blob([new XMLSerializer().serializeToString(svgEl)], {

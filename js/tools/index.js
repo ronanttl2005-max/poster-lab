@@ -10,6 +10,7 @@ import specimen from "./specimen.js";
 import techlines from "./techlines.js";
 import typeflow from "./typeflow.js";
 import gridlab from "./gridlab.js";
+import { mountBrandKit } from "../brand-kit.js";
 
 export const TOOLS = [gridlab, specimen, techlines, typeflow];
 
@@ -33,8 +34,10 @@ export function mountTools(root, param) {
       <div class="tool-preset-chips" id="tool-presets"></div>
       <div class="ref-strip" id="tool-refs"></div>
     </div>
+    <div id="tool-brand-kit"></div>
     <div class="tool-body"></div>`;
   const body = root.querySelector(".tool-body");
+  const brandKitCleanup = mountBrandKit(root.querySelector("#tool-brand-kit"), { compact: true });
   let cleanup = () => {};
   const remount = (options = {}) => {
     try { cleanup(); } catch { /* 上一个实例清理失败不阻塞重挂载 */ }
@@ -45,7 +48,10 @@ export function mountTools(root, param) {
   renderToolPresets(root.querySelector("#tool-presets"), tool, remount);
   renderToolRefs(root.querySelector("#tool-refs"), tool, remount);
   remount();
-  return () => cleanup();
+  return () => {
+    brandKitCleanup();
+    cleanup();
+  };
 }
 
 function renderToolRefs(refsRoot, tool, remount) {
