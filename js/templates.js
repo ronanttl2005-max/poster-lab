@@ -988,7 +988,7 @@ export const TEMPLATES = [
           <span>${esc(v.kicker)}</span><span>3 : 4</span>
         </div>
         ${v.image
-          ? `<img src="${v.image}" style="position:absolute;left:64px;top:${imgTop}px;width:622px;height:${imgH}px;object-fit:cover;${deep ? "" : fake}" />`
+          ? `<img src="${esc(v.image)}" style="position:absolute;left:64px;top:${imgTop}px;width:622px;height:${imgH}px;object-fit:cover;${deep ? "" : fake}" />`
           : `<div style="position:absolute;left:64px;top:${imgTop}px;width:622px;height:${imgH}px;border:1px dashed ${v.ink};opacity:.28;"></div>`}
         <div style="position:absolute;left:64px;right:64px;top:${imgTop + imgH + 26}px;">
           <div style="font-family:'Playfair Display',Georgia,'Songti SC',serif;font-size:${bigSize}px;font-weight:700;line-height:1.0;letter-spacing:-1px;color:${v.ink};">${titleLines
@@ -1014,7 +1014,7 @@ export const TEMPLATES = [
     fieldGroups: {
       "① 编辑方式与参考": ["replicaMode", "referenceImage"],
       "② 画布与网格": ["bg", "gridColor", "gridSize", "ink", "accent"],
-      "③ 页眉与标题": ["code", "title", "titleEn"],
+      "③ 页眉与标题": ["code", "title", "titleSize", "titleEn"],
       "④ 主体图片": ["image", "imgH"],
       "⑤ 参数区": ["specs", "showSpecCards"],
       "⑥ 页脚信息": ["foot"],
@@ -1073,7 +1073,8 @@ export const TEMPLATES = [
       // fx 走 blueprint-ghost：抠主体 + 提亮压饱和 + 用 gridColor 淡淡染一层
       { key: "image", label: "主体图（深度模式转蓝图幽灵）", type: "image", default: "", fx: "blueprint-ghost" },
       { key: "imgH", label: "主体高度", type: "range", default: "360", min: 180, max: 520 },
-      { key: "title", label: "大标题", type: "text", default: "Finding balance between" },
+      { key: "title", label: "大标题（可换行）", type: "textarea", default: "Finding balance between" },
+      { key: "titleSize", label: "大标题字号", type: "range", default: "76", min: 48, max: 90 },
       { key: "titleEn", label: "副标题", type: "text", default: "FUNCTION, EMOTION AND VISUAL LANGUAGE" },
       { key: "specs", label: "参数（每行：名称|数值）", type: "textarea", default: "41|08.15\n48|—\nR7|10.30" },
       {
@@ -1097,7 +1098,12 @@ export const TEMPLATES = [
       const cards = v.showSpecCards !== "no";
       const rows = String(v.specs || "").split("\n").filter(Boolean).map((l) => l.split("|"));
 
-      const imgTop = 208;
+      const titleLines = String(v.title || "").split("\n").filter(Boolean);
+      const titleSize = lim(num(v.titleSize, 76), 48, 90);
+      const longestTitleLine = titleLines.reduce((max, line) => Math.max(max, [...line].length), 0);
+      const fittedTitleSize = Math.max(44, Math.min(titleSize, 86 - Math.max(0, longestTitleLine - 18) * 1.35));
+      const titleBlockH = Math.min(178, Math.max(70, titleLines.length * fittedTitleSize * 0.92));
+      const imgTop = 96 + titleBlockH + 18;
       // 参数区高度：卡片是两列，列表是单列
       const specH = cards ? Math.ceil(rows.length / 2) * 78 : rows.length * 34;
       const imgH = lim(num(v.imgH, 360), 160, Math.max(160, 1000 - imgTop - specH - 130));
@@ -1129,11 +1135,11 @@ export const TEMPLATES = [
           <span>${esc(v.code)}</span><span style="border:1px solid ${v.accent};padding:3px 8px;">750 × 1000</span>
         </div>
         <div style="position:absolute;left:56px;right:56px;top:96px;">
-          <div style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:76px;line-height:.92;letter-spacing:1px;color:${v.ink};">${esc(v.title)}</div>
+          <div style="font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-size:${fittedTitleSize.toFixed(1)}px;line-height:.92;letter-spacing:1px;color:${v.ink};">${titleLines.map((line) => `<div>${rich(line)}</div>`).join("")}</div>
           <div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:4px;color:${v.accent};margin-top:8px;">${esc(v.titleEn)}</div>
         </div>
         ${v.image
-          ? `<img src="${v.image}" style="position:absolute;left:50%;transform:translateX(-50%);top:${imgTop}px;width:520px;height:${imgH}px;object-fit:contain;${deep ? "" : fake}" />`
+          ? `<img src="${esc(v.image)}" style="position:absolute;left:50%;transform:translateX(-50%);top:${imgTop}px;width:520px;height:${imgH}px;object-fit:contain;${deep ? "" : fake}" />`
           : `<div style="position:absolute;left:50%;transform:translateX(-50%);top:${imgTop}px;width:520px;height:${imgH}px;border:1px dashed ${v.accent};opacity:.35;"></div>`}
         <div style="position:absolute;left:56px;right:56px;top:${imgTop + imgH + 22}px;">${specBlock}</div>
         <div style="position:absolute;bottom:40px;left:56px;right:56px;display:flex;justify-content:space-between;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:2px;color:${v.ink};opacity:.6;">
@@ -1154,7 +1160,7 @@ export const TEMPLATES = [
       "② 色板": ["bg", "ink", "topInk"],
       "③ 上半照片与分割": ["photo", "splitRatio"],
       "④ 上半标语与标签": ["tag", "slogan", "sloganSize"],
-      "⑤ 下半标语": ["sub"],
+      "⑤ 下半标语": ["sub", "subSize", "subBottom"],
       "⑥ 资料脚注": ["foot"],
     },
     presets: [
@@ -1173,6 +1179,8 @@ export const TEMPLATES = [
           slogan: "THE\nROAD\nIS\nLONG",
           sloganSize: "94",
           sub: "THE\nTIME\nIS\nSHORT",
+          subSize: "96",
+          subBottom: "10",
           foot: "08 / RIVER / PHOTOGRAPHY|AZAM SAM",
         },
       },
@@ -1189,6 +1197,8 @@ export const TEMPLATES = [
       { key: "slogan", label: "上半标语（换行分行）", type: "textarea", default: "THE\nROAD\nIS\nLONG" },
       { key: "sloganSize", label: "标语字号", type: "range", default: "94", min: 60, max: 124 },
       { key: "sub", label: "下半标语（换行分行）", type: "textarea", default: "THE\nTIME\nIS\nSHORT" },
+      { key: "subSize", label: "下半标语字号", type: "range", default: "96", min: 54, max: 130 },
+      { key: "subBottom", label: "下半标语距底", type: "range", default: "10", min: 0, max: 120 },
       { key: "foot", label: "左下资料（用 | 分组）", type: "text", default: "08 / RIVER / PHOTOGRAPHY|AZAM SAM" },
     ],
     render: (v) => {
@@ -1198,7 +1208,8 @@ export const TEMPLATES = [
       const lines = String(v.slogan || "").split("\n").filter(Boolean);
       const lowerLines = String(v.sub || "").split("\n").filter(Boolean);
       const size = lim(num(v.sloganSize, 94), 60, 124);
-      const lowerSize = lim(size * 1.02, 60, 126);
+      const lowerSize = lim(num(v.subSize, size * 1.02), 54, 130);
+      const lowerBottom = lim(num(v.subBottom, 10), 0, 120);
       const ratio = lim(num(v.splitRatio, 60), 45, 72);
       const photoH = Math.round((ratio / 100) * 1000);
       const [footL, footR] = String(v.foot || "").split("|");
@@ -1207,13 +1218,13 @@ export const TEMPLATES = [
       return `
       <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
         ${v.photo
-          ? `<img src="${v.photo}" style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;object-fit:cover;display:block;" />`
+          ? `<img src="${esc(v.photo)}" style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;object-fit:cover;display:block;" />`
           : `<div style="position:absolute;left:0;top:0;width:750px;height:${photoH}px;background:linear-gradient(180deg,#B7D7DB 0%,#9EC2C6 58%,#6D8F91 100%);"><div style="position:absolute;left:0;right:0;bottom:44px;height:28px;background:#496C6E;opacity:.6;"></div><div style="position:absolute;left:286px;bottom:42px;width:110px;height:42px;background:#26383B;clip-path:polygon(16% 24%,82% 16%,100% 58%,91% 100%,7% 100%,0 60%);"></div></div>`}
         <div style="position:absolute;left:18px;top:14px;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-size:${size}px;font-weight:900;line-height:.78;letter-spacing:-7px;color:${v.topInk};">${lines
             .map((l) => `<div>${rich(l)}</div>`)
             .join("")}</div>
         <div style="position:absolute;right:12px;top:42px;display:grid;gap:74px;text-align:right;font:700 8px/1 'Space Mono',ui-monospace,monospace;color:${v.topInk};text-transform:uppercase;">${tags.map((item) => `<span>${esc(item)}</span>`).join("")}</div>
-        <div style="position:absolute;right:12px;bottom:10px;text-align:right;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-size:${lowerSize}px;font-weight:900;line-height:.76;letter-spacing:-8px;color:${v.ink};">${lowerLines.map((l) => `<div>${rich(l)}</div>`).join("")}</div>
+        <div style="position:absolute;right:12px;bottom:${lowerBottom}px;text-align:right;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-size:${lowerSize}px;font-weight:900;line-height:.76;letter-spacing:-8px;color:${v.ink};">${lowerLines.map((l) => `<div>${rich(l)}</div>`).join("")}</div>
         <div style="position:absolute;left:14px;top:${photoH + 48}px;width:116px;font:700 9px/4.8 'Space Mono',ui-monospace,monospace;color:${v.ink};text-transform:uppercase;">
           <div>${esc(footL || "")}</div><div>${esc(footR || "")}</div>
         </div>
@@ -1230,7 +1241,7 @@ export const TEMPLATES = [
     fieldGroups: {
       "① 编辑方式与参考": ["replicaMode", "referenceImage"],
       "② 照片与压暗": ["bg", "photo", "shade"],
-      "③ 黄色数据条": ["barY", "barColor", "stats", "timeWord"],
+      "③ 黄色数据条": ["barY", "barColor", "barInk", "stats", "timeWord"],
       "④ 标题与正文": ["title", "titleSize", "body"],
       "⑤ 页眉与页脚": ["ink", "kicker", "foot"],
     },
@@ -1245,6 +1256,7 @@ export const TEMPLATES = [
           bg: "#101418",
           barY: "455",
           barColor: "#FFE500",
+          barInk: "#111111",
           ink: "#FFE500",
           timeWord: "TIME",
           shade: "18",
@@ -1265,12 +1277,13 @@ export const TEMPLATES = [
       { key: "shade", label: "照片压暗程度", type: "range", default: "18", min: 0, max: 80 },
       { key: "barY", label: "数据条位置", type: "range", default: "455", min: 300, max: 650 },
       { key: "barColor", label: "数据条颜色", type: "color", default: "#FFE500" },
+      { key: "barInk", label: "数据条文字色", type: "color", default: "#111111" },
       { key: "ink", label: "文字色", type: "color", default: "#FFE500" },
       { key: "timeWord", label: "数据条右侧大字", type: "text", default: "TIME" },
       { key: "kicker", label: "顶部小标（可留空）", type: "text", default: "" },
       { key: "title", label: "底部标题", type: "textarea", default: "ABOUT US" },
       { key: "titleSize", label: "标题字号", type: "range", default: "66", min: 42, max: 92 },
-      { key: "stats", label: "数据条（三行：左|右）", type: "textarea", default: "DISTANCE 10KM|ELEVATION GAIN 890M\nHIKE TIME 02:23:55|FUEL UP. KEEP MOVING.\nTEMPERATURE +10C|WWW.NODE66.COM" },
+      { key: "stats", label: "数据条（最多三行：左|右）", type: "textarea", default: "DISTANCE 10KM|ELEVATION GAIN 890M\nHIKE TIME 02:23:55|FUEL UP. KEEP MOVING.\nTEMPERATURE +10C|WWW.NODE66.COM" },
       { key: "body", label: "底部正文", type: "textarea", default: "Node 66 is built at intersections — of people, of places, of paths crossed for the first time. The road is the promise that something worth finding is always just ahead. Two shapes. One mark. Endless roads." },
       { key: "foot", label: "网址与右下字标（用 | 分左右）", type: "text", default: "WWW.NODE66.COM|node⁶⁶" },
     ],
@@ -1283,21 +1296,21 @@ export const TEMPLATES = [
       const shade = lim(num(v.shade, 18), 0, 80) / 100;
       const barH = 104;
       const barY = lim(num(v.barY, 455), 300, 650);
-      const stats = String(v.stats || "").split("\n").filter(Boolean).map((l) => l.split("|"));
+      const stats = String(v.stats || "").split("\n").filter(Boolean).slice(0, 3).map((l) => l.split("|"));
       const [footL, footR] = String(v.foot || "").split("|");
 
       return `
       <div style="position:absolute;inset:0;background:${v.bg};overflow:hidden;">
-        ${v.photo ? `<img src="${v.photo}" style="position:absolute;inset:0;width:750px;height:1000px;object-fit:cover;display:block;" />` : `<div style="position:absolute;inset:0;background:linear-gradient(180deg,#D7E4DF 0%,#BFC9BD 28%,#4F5B45 45%,#151B14 78%,#0B0E0B 100%);"><div style="position:absolute;left:-80px;right:-70px;top:235px;height:340px;background:#273326;clip-path:polygon(0 74%,18% 44%,37% 53%,52% 18%,67% 48%,80% 31%,100% 70%,100% 100%,0 100%);"></div></div>`}
+        ${v.photo ? `<img src="${esc(v.photo)}" style="position:absolute;inset:0;width:750px;height:1000px;object-fit:cover;display:block;" />` : `<div style="position:absolute;inset:0;background:linear-gradient(180deg,#D7E4DF 0%,#BFC9BD 28%,#4F5B45 45%,#151B14 78%,#0B0E0B 100%);"><div style="position:absolute;left:-80px;right:-70px;top:235px;height:340px;background:#273326;clip-path:polygon(0 74%,18% 44%,37% 53%,52% 18%,67% 48%,80% 31%,100% 70%,100% 100%,0 100%);"></div></div>`}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,${(shade * .4).toFixed(2)}) 0%,rgba(0,0,0,${(shade * .15).toFixed(2)}) 46%,rgba(0,0,0,${(shade * 1.65).toFixed(2)}) 100%);"></div>
         <div style="position:absolute;top:52px;left:52px;font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:5px;color:${v.ink};opacity:.85;">${esc(v.kicker)}</div>
-        <div style="position:absolute;left:0;right:0;top:${barY}px;height:${barH}px;background:${v.barColor};display:grid;grid-template-columns:1fr 1fr 1.15fr;align-items:center;gap:24px;padding:0 20px;color:#111;overflow:hidden;">
+        <div style="position:absolute;left:0;right:0;top:${barY}px;height:${barH}px;background:${v.barColor};display:grid;grid-template-columns:1fr 1fr 1.15fr;align-items:center;gap:24px;padding:0 20px;color:${v.barInk || "#111"};overflow:hidden;">
           ${stats
             .map(
               ([n, unit]) => `<div style="font-family:'Space Mono',ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;line-height:1.16;text-transform:uppercase;"><div>${esc(n || "")}</div><div>${esc(unit || "")}</div></div>`
             )
             .join("")}
-          ${v.timeWord ? `<div style="position:absolute;right:-28px;bottom:-32px;font-family:'Arial Black',Impact,sans-serif;font-size:116px;line-height:1;color:${v.barColor === v.ink ? "#FFF" : v.ink};opacity:.9;">${esc(v.timeWord)}</div>` : ""}
+          ${v.timeWord ? `<div style="position:absolute;right:-28px;bottom:-32px;font-family:'Arial Black',Impact,sans-serif;font-size:116px;line-height:1;color:${v.barInk || (v.barColor === v.ink ? "#FFF" : v.ink)};opacity:.9;">${esc(v.timeWord)}</div>` : ""}
         </div>
         <div style="position:absolute;left:34px;right:34px;bottom:68px;">
           <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:${titleSize}px;font-weight:400;line-height:1;color:${v.ink};letter-spacing:2px;">${titleLines
@@ -1436,13 +1449,13 @@ export const TEMPLATES = [
         const source = v[sourceKey];
         if (v[modeKey] === "original" && source) {
           return `<div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:#15181C;${shadowCss}">
-            <img src="${source}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
+            <img src="${esc(source)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />
           </div>`;
         }
         const titleLines = String(v[titleKey] || "").split("\n").filter(Boolean).map((line) => `<div>${rich(line)}</div>`).join("");
         return `<div style="position:absolute;left:${x}px;top:${top}px;width:${panelW}px;height:${panelH}px;border-radius:${radius}px;overflow:hidden;background:${v[bgKey] || "#F1F0EA"};${shadowCss};color:${v[inkKey] || "#111"};">
           ${v[photoKey]
-            ? `<img src="${v[photoKey]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:saturate(80%) contrast(110%);" />
+            ? `<img src="${esc(v[photoKey])}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:saturate(80%) contrast(110%);" />
                <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.52));"></div>`
             : ""}
           <div style="position:absolute;left:14px;right:12px;top:14px;font:700 8px/1.2 'Space Mono',ui-monospace,monospace;letter-spacing:1.5px;text-transform:uppercase;">${esc(v[tagKey])}</div>
@@ -1467,8 +1480,8 @@ export const TEMPLATES = [
     id: "line-event-quartet",
     name: "线稿活动四联",
     styleId: "playful-craft",
-    desc: "原图素材模式完整保留四联总览；可编辑模式既能直接使用四张原始单页，也能切换为文字与插画参数化重绘",
-    recommend: "系列海报总览 / 活动视觉提案 · 参考原图和四张单页都作为内置素材保留",
+    desc: "原图素材模式完整保留四联总览；可编辑模式支持总览批量切换，并允许每张单页独立改字、换色、换图或保留原始素材",
+    recommend: "系列海报总览 / 活动视觉提案 · 先用总览模式统一调整，再对单页设置独立例外",
     fieldGroups: {
       "① 编辑方式与总览": ["replicaMode", "referenceImage", "panelMode", "bg", "gap", "ink", "meta"],
       "② 单页 1 · Design MORO": ["p1Mode", "p1Poster", "p1Bg", "p1Tag", "p1Title", "p1Sub", "p1Caption", "p1Shape", "p1Color", "p1Art"],
@@ -1486,13 +1499,13 @@ export const TEMPLATES = [
           referenceImage: "assets/inspirations/66-line-event-quartet.png",
           panelMode: "redraw",
           p1Poster: "assets/inspirations/62-design-moro-lineart.png",
-          p1Mode: "redraw",
+          p1Mode: "inherit",
           p2Poster: "assets/inspirations/63-street-party-blur.png",
-          p2Mode: "redraw",
+          p2Mode: "inherit",
           p3Poster: "assets/inspirations/64-recharge-playful-type.png",
-          p3Mode: "redraw",
+          p3Mode: "inherit",
           p4Poster: "assets/inspirations/65-lake-fair-lineart.png",
-          p4Mode: "redraw",
+          p4Mode: "inherit",
           bg: "#D9D9D6",
           gap: "12",
           ink: "#111111",
@@ -1531,12 +1544,12 @@ export const TEMPLATES = [
     fields: [
       { key: "replicaMode", label: "编辑方式", type: "select", default: "editable", options: [{ value: "editable", label: "可编辑四联（推荐）" }, { value: "reference", label: "总览原图对照" }] },
       { key: "referenceImage", label: "四联总览原图（可替换）", type: "image", default: "assets/inspirations/66-line-event-quartet.png" },
-      { key: "panelMode", label: "四联内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "四张原始单页" }] },
+      { key: "panelMode", label: "总览默认内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "四张原始单页" }] },
       { key: "bg", label: "总览衬底", type: "color", default: "#D9D9D6" },
       { key: "gap", label: "四联间距", type: "range", default: "12", min: 0, max: 28 },
       { key: "ink", label: "默认文字色", type: "color", default: "#111111" },
       { key: "p1Bg", label: "① Design MORO 背景", type: "color", default: "#FFFFFF" },
-      { key: "p1Mode", label: "① 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
+      { key: "p1Mode", label: "① 内容模式", type: "select", default: "inherit", options: [{ value: "inherit", label: "跟随总览设置" }, { value: "redraw", label: "参数化重绘" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p1Tag", label: "① 眉题", type: "text", default: "DESIGN MORO" },
       { key: "p1Title", label: "① 标题", type: "textarea", default: "What should we design?" },
       { key: "p1Sub", label: "① 分类小字", type: "textarea", default: "Branding  Poster  Editorial" },
@@ -1546,7 +1559,7 @@ export const TEMPLATES = [
       { key: "p1Poster", label: "① 原始单页（可替换）", type: "image", default: "assets/inspirations/62-design-moro-lineart.png" },
       { key: "p1Art", label: "① 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p2Bg", label: "② Street Party 背景", type: "color", default: "#F7F7F4" },
-      { key: "p2Mode", label: "② 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
+      { key: "p2Mode", label: "② 内容模式", type: "select", default: "inherit", options: [{ value: "inherit", label: "跟随总览设置" }, { value: "redraw", label: "参数化重绘" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p2Tag", label: "② 眉题", type: "text", default: "53 STREET PARTY" },
       { key: "p2Title", label: "② 标题", type: "textarea", default: "100 Possibilities" },
       { key: "p2Sub", label: "② 副标题", type: "textarea", default: "in the Vicinity" },
@@ -1556,7 +1569,7 @@ export const TEMPLATES = [
       { key: "p2Poster", label: "② 原始单页（可替换）", type: "image", default: "assets/inspirations/63-street-party-blur.png" },
       { key: "p2Art", label: "② 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p3Bg", label: "③ Recharge 背景", type: "color", default: "#F8F8F6" },
-      { key: "p3Mode", label: "③ 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
+      { key: "p3Mode", label: "③ 内容模式", type: "select", default: "inherit", options: [{ value: "inherit", label: "跟随总览设置" }, { value: "redraw", label: "参数化重绘" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p3Tag", label: "③ 眉题", type: "text", default: "PLAN : POOOD" },
       { key: "p3Title", label: "③ 标题", type: "textarea", default: "Time to 按需\nplay, 嬉戏, recharge" },
       { key: "p3Sub", label: "③ 副标题", type: "textarea", default: "the 呼吸. day." },
@@ -1566,7 +1579,7 @@ export const TEMPLATES = [
       { key: "p3Poster", label: "③ 原始单页（可替换）", type: "image", default: "assets/inspirations/64-recharge-playful-type.png" },
       { key: "p3Art", label: "③ 插画图片（可选）", type: "image", default: "", fx: "pop-sticker" },
       { key: "p4Bg", label: "④ 湖集背景", type: "color", default: "#F3F3F0" },
-      { key: "p4Mode", label: "④ 内容模式", type: "select", default: "redraw", options: [{ value: "redraw", label: "参数化重绘（推荐）" }, { value: "originals", label: "原始单页素材" }] },
+      { key: "p4Mode", label: "④ 内容模式", type: "select", default: "inherit", options: [{ value: "inherit", label: "跟随总览设置" }, { value: "redraw", label: "参数化重绘" }, { value: "originals", label: "原始单页素材" }] },
       { key: "p4Tag", label: "④ 眉题", type: "text", default: "湖集 HU FAIR" },
       { key: "p4Title", label: "④ 标题", type: "textarea", default: "在湖集\n划个水" },
       { key: "p4Sub", label: "④ 副标题", type: "textarea", default: "At the lake\ndraw a water" },
@@ -1594,20 +1607,24 @@ export const TEMPLATES = [
       const panel = (index, x, y) => {
         const bg = v[`p${index}Bg`] || "#fff";
         const poster = v[`p${index}Poster`];
-        const panelMode = v[`p${index}Mode`] || v.panelMode || "redraw";
+        const panelSetting = v[`p${index}Mode`] || "inherit";
+        const panelMode = panelSetting === "inherit" ? (v.panelMode || "redraw") : panelSetting;
         if (panelMode !== "redraw" && poster) {
           return `<section style="position:absolute;left:${x}px;top:${y}px;width:${panelW}px;height:${panelH}px;background:#F7F7F4;overflow:hidden;">
-            <img src="${poster}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;" />
+            <img src="${esc(poster)}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;" />
           </section>`;
         }
-        const title = String(v[`p${index}Title`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
+        const titleLines = String(v[`p${index}Title`] || "").split("\n").filter(Boolean);
+        const longestTitleLine = titleLines.reduce((max, line) => Math.max(max, [...line].length), 0);
+        const titleSize = Math.max(13, Math.min(index === 2 ? 22 : 25, 25 - Math.max(0, longestTitleLine - 16) * 0.42 - Math.max(0, titleLines.length - 2) * 1.5));
+        const title = titleLines.map((line) => `<div>${rich(line)}</div>`).join("");
         const sub = String(v[`p${index}Sub`] || "").split("\n").map((line) => `<div>${rich(line)}</div>`).join("");
         const art = v[`p${index}Art`]
-          ? `<img src="${v[`p${index}Art`]}" style="position:absolute;left:8%;top:27%;width:84%;height:42%;object-fit:contain;filter:saturate(135%) contrast(112%);" />`
+          ? `<img src="${esc(v[`p${index}Art`])}" style="position:absolute;left:8%;top:27%;width:84%;height:42%;object-fit:contain;filter:saturate(135%) contrast(112%);" />`
           : `<div style="position:absolute;left:8%;top:28%;width:84%;height:39%;display:flex;align-items:center;justify-content:center;">${artSvg(v[`p${index}Shape`], v[`p${index}Color`])}</div>`;
         return `<section style="position:absolute;left:${x}px;top:${y}px;width:${panelW}px;height:${panelH}px;background:${bg};overflow:hidden;color:${v.ink || "#111"};font-family:Helvetica,Arial,sans-serif;">
           <div style="position:absolute;top:16px;left:18px;right:18px;font-size:10px;letter-spacing:1.7px;font-weight:700;">${esc(v[`p${index}Tag`])}</div>
-          <div style="position:absolute;top:42px;left:18px;right:16px;font-size:${index === 2 ? 22 : 25}px;font-weight:700;line-height:1.02;letter-spacing:-.5px;">${title}</div>
+          <div style="position:absolute;top:42px;left:18px;right:16px;font-size:${titleSize.toFixed(1)}px;font-weight:700;line-height:1.02;letter-spacing:-.5px;">${title}</div>
           ${art}
           <div style="position:absolute;left:18px;right:18px;bottom:52px;font-size:10px;line-height:1.35;white-space:pre-wrap;">${esc(v[`p${index}Caption`])}</div>
           <div style="position:absolute;left:18px;right:18px;bottom:16px;font-size:13px;line-height:1.04;font-weight:700;white-space:pre-wrap;">${sub}</div>

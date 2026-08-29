@@ -88,6 +88,35 @@ function imageAdjustControls(tpl, field, values) {
   </div>`;
 }
 
+// 文件输入本身不会在表单重绘后保留已选文件，因此把当前素材显式
+// 渲染出来，并提供清除/恢复内置素材的操作。这样切换模板或处理模式
+// 后，用户仍然能确认画布正在使用哪一张图。
+function imageFieldMarkup(tpl, field, values, inputId) {
+  const value = values[field.key] ?? field.default ?? "";
+  const hasValue = Boolean(value);
+  const isDefault = hasValue && field.default && value === field.default;
+  const displayValue = /^data:image\//i.test(String(value)) ? "本地上传图片" : String(value);
+  const preview = hasValue
+    ? `<div style="display:flex;align-items:center;gap:9px;margin:8px 0 2px;padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);">
+        <img src="${esc(value)}" alt="当前素材预览" loading="lazy" style="width:52px;height:52px;object-fit:cover;border-radius:5px;background:#fff;border:1px solid rgba(0,0,0,.08);" />
+        <div style="min-width:0;flex:1;font-size:10px;line-height:1.35;color:var(--text-3);overflow:hidden;">
+          <div style="color:var(--text-2);font-weight:600;">${isDefault ? "内置素材" : "当前已上传"}</div>
+          <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(displayValue)}">${esc(displayValue)}</div>
+        </div>
+        <button type="button" class="btn btn-ghost" data-image-clear="${esc(field.key)}" style="flex:none;padding:5px 7px;font-size:10px;">清除</button>
+      </div>`
+    : `<div style="margin:8px 0 2px;padding:7px 8px;border:1px dashed var(--line);border-radius:8px;color:var(--text-3);font-size:10px;">尚未设置图片，将使用模板占位或纯色背景</div>`;
+  const restore = field.default && !isDefault
+    ? `<button type="button" class="btn btn-ghost" data-image-restore="${esc(field.key)}" style="padding:5px 7px;font-size:10px;">恢复内置</button>`
+    : "";
+  return `<div class="field"><label for="${inputId}">${esc(field.label)}</label>
+    <input id="${inputId}" type="file" accept="image/*" data-k="${esc(field.key)}" data-type="image" />
+    ${preview}
+    ${restore ? `<div style="display:flex;justify-content:flex-end;margin-top:5px;">${restore}</div>` : ""}
+    ${imageAdjustControls(tpl, field, values)}
+  </div>`;
+}
+
 function renderEditorFields(tpl, values) {
   const fieldMap = new Map(tpl.fields.map((field) => [field.key, field]));
   const groups = Object.entries(tpl.fieldGroups || {}).map(([label, keys]) => ({
@@ -105,8 +134,7 @@ function renderEditorFields(tpl, values) {
           return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><textarea id="${inputId}" data-k="${esc(f.key)}">${esc(val)}</textarea></div>`;
         if (f.type === "color")
           return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="color" data-k="${esc(f.key)}" value="${esc(val)}" /></div>`;
-        if (f.type === "image")
-          return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><input id="${inputId}" type="file" accept="image/*" data-k="${esc(f.key)}" data-type="image" />${imageAdjustControls(tpl, f, values)}</div>`;
+        if (f.type === "image") return imageFieldMarkup(tpl, f, values, inputId);
         if (f.type === "select")
           return `<div class="field"><label for="${inputId}">${esc(f.label)}</label><select id="${inputId}" data-k="${esc(f.key)}">${f.options
             .map((o) => `<option value="${esc(o.value)}" ${o.value === val ? "selected" : ""}>${esc(o.label)}</option>`)
@@ -324,6 +352,31 @@ export function mountEditor(root, initialId, initialPresetId) {
       })
     );
 
+    form.querySelectorAll("[data-image-clear]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const key = button.dataset.imageClear;
+        if (!key) return;
+        v[key] = "";
+        delete getRaws(tpl)[key];
+        delete v[imageScaleKey(key)];
+        delete v[imageOpacityKey(key)];
+        renderForm();
+        renderPoster();
+      })
+    );
+
+    form.querySelectorAll("[data-image-restore]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const key = button.dataset.imageRestore;
+        const field = tpl.fields.find((candidate) => candidate.key === key);
+        if (!field) return;
+        v[key] = field.default ?? "";
+        delete getRaws(tpl)[key];
+        renderForm();
+        renderPoster();
+      })
+    );
+
     const modeSelect = form.querySelector("[data-imgmode]");
     if (modeSelect) {
       modeSelect.addEventListener("change", () => {
@@ -353,6 +406,7 @@ export function mountEditor(root, initialId, initialPresetId) {
               applyFxField(tpl, field, labelEl);
             } else {
               v[key] = reader.result;
+              renderForm();
               renderPoster();
             }
           };
@@ -386,6 +440,7 @@ export function mountEditor(root, initialId, initialPresetId) {
 
     if (v[MODE_KEY] !== MODE_DEEP) {
       v[field.key] = raw;
+      renderForm();
       renderPoster();
       return;
     }
@@ -397,6 +452,7 @@ export function mountEditor(root, initialId, initialPresetId) {
       const out = await processImage(raw, field.fx, v);
       if (fxTickets[ticketKey] !== ticket) return; // 已被更新的上传取代
       v[field.key] = out;
+      renderForm();
       renderPoster();
     } finally {
       if (fxTickets[ticketKey] === ticket && labelEl) labelEl.textContent = field.label;
