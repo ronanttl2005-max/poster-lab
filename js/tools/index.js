@@ -10,9 +10,13 @@ import specimen from "./specimen.js";
 import techlines from "./techlines.js";
 import typeflow from "./typeflow.js";
 import gridlab from "./gridlab.js";
+import micrographic from "./micrographic.js";
+import labelmotion from "./labelmotion.js";
+import geopop from "./geopop.js";
+import subjectlift from "./subjectlift.js";
 import { mountBrandKit } from "../brand-kit.js";
 
-export const TOOLS = [gridlab, specimen, techlines, typeflow];
+export const TOOLS = [micrographic, subjectlift, labelmotion, geopop, gridlab, specimen, techlines, typeflow];
 
 if (window.PosterLab) {
   window.PosterLab.tools = TOOLS.map(({ id, name }) => ({ id, name }));
@@ -37,18 +41,30 @@ export function mountTools(root, param) {
     <div id="tool-brand-kit"></div>
     <div class="tool-body"></div>`;
   const body = root.querySelector(".tool-body");
+  // Measure the navigation: narrow windows have a taller, two-line header.
+  const topbar = document.querySelector(".topbar");
+  const updateWorkspaceTop = () => {
+    body.style.setProperty("--tool-top", `${Math.ceil(topbar?.getBoundingClientRect().height || 76) + 16}px`);
+  };
+  updateWorkspaceTop();
+  const headerObserver = new ResizeObserver(updateWorkspaceTop);
+  if (topbar) headerObserver.observe(topbar);
   const brandKitCleanup = mountBrandKit(root.querySelector("#tool-brand-kit"), { compact: true });
   let cleanup = () => {};
   const remount = (options = {}) => {
     try { cleanup(); } catch { /* 上一个实例清理失败不阻塞重挂载 */ }
     body.innerHTML = "";
     const c = tool.mount(body, options);
+    for (const child of body.children) {
+      child.classList.add(child.classList.contains("tc-panel") ? "tool-controls" : "tool-preview");
+    }
     cleanup = typeof c === "function" ? c : () => {};
   };
   renderToolPresets(root.querySelector("#tool-presets"), tool, remount);
   renderToolRefs(root.querySelector("#tool-refs"), tool, remount);
   remount();
   return () => {
+    headerObserver.disconnect();
     brandKitCleanup();
     cleanup();
   };

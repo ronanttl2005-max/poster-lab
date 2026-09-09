@@ -28,15 +28,18 @@ POSTER_LAB_DATA_FILE=/平台持久磁盘/poster-lab-data.json
 | 方法 | 路径 | 用途 |
 | --- | --- | --- |
 | GET | `/api/health` | 健康检查 |
-| GET | `/api/bootstrap` | 一次获取 `{ inspirations, styles, templates }` 三个数组 |
+| GET | `/api/bootstrap` | 一次获取 `{ inspirations, styles, templates, folders }` 四个数组 |
 | GET | `/api/styles` | 风格列表 |
 | GET | `/api/styles/:id` | 单个风格 |
 | GET | `/api/inspirations` | 灵感列表 |
 | GET | `/api/inspirations/:id` | 按 `id` 或文件名查找灵感 |
 | GET | `/api/templates` | 模板元数据和编辑字段 |
 | GET | `/api/templates/:id` | 单个模板元数据 |
-| POST | `/api/styles`、`/api/inspirations`、`/api/templates` | 新增记录 |
-| PATCH/PUT | `/api/styles/:id`、`/api/inspirations/:id`、`/api/templates/:id` | 修改记录 |
+| GET | `/api/folders`、`/api/folders/:id` | 收藏夹列表或单个收藏夹 |
+| POST | `/api/styles`、`/api/inspirations`、`/api/templates`、`/api/folders` | 新增记录 |
+| PATCH/PUT | `/api/styles/:id`、`/api/inspirations/:id`、`/api/templates/:id`、`/api/folders/:id` | 修改记录 |
+| POST | `/api/uploads` | 上传 base64 图片，返回 `/uploads/…` 素材地址 |
+| DELETE | `/api/inspirations/:id`、`/api/folders/:id` | 删除灵感或收藏夹 |
 
 列表支持 `styleId`、`q`（全文搜索）、`page`、`pageSize` 查询参数。响应格式为 `{ data, meta }`；单个记录和写入响应为 `{ data }`。
 
@@ -44,12 +47,16 @@ POSTER_LAB_DATA_FILE=/平台持久磁盘/poster-lab-data.json
 
 ### 写入鉴权与跨域
 
-- 配置 `POSTER_LAB_ADMIN_TOKEN` 后，所有 `POST`、`PUT`、`PATCH` 请求必须发送 `Authorization: Bearer <token>`。
+- 配置 `POSTER_LAB_ADMIN_TOKEN` 后，所有数据写入（含上传、删除）必须发送 `Authorization: Bearer <token>`。
 - 未配置 token 时，写接口只允许本机回环地址访问；远程请求返回 503。公开部署务必配置 token。
-- 默认不发送跨域响应头，也就是浏览器按同源策略访问。确实需要分离部署前后端时，可以把 `CORS_ORIGIN` 设置成唯一允许的前端来源，例如 `https://example.github.io`；不要把公网环境设成 `*`。
+- 默认支持同源访问，并允许代码中指定的本站 GitHub Pages 来源 `https://ronanttl2005-max.github.io`。其他分离部署可以把 `CORS_ORIGIN` 设置成唯一允许的前端来源，例如 `https://example.github.io`；不要把公网环境设成 `*`。
 - 静态服务使用白名单，只发布 `index.html` 以及 `css/`、`js/`、`data/`、`assets/`、`vendor/` 下的前端资源，不会发布 `.git`、`server/`、`.env` 或包配置。
 
 ## 本地存储与部署限制
+
+艺术工具在浏览器内处理素材。旧 `/api/ai/responses` 和 `/api/ai/images/edits` 代理接口已撤下，返回 404；主体抽离等工具首次使用自动抠图时仍需联网下载开源模型。
+
+GitHub Pages 工作流先运行 `npm run check`，再仅发布前端目录。Node 后端源码随 Git 提交推送，但必须由 Render/Railway 等 Node 服务运行，GitHub Pages 本身不执行后端。
 
 `server/data.json`（或 `POSTER_LAB_DATA_FILE` 指向的文件）是适合单机/个人开发的 JSON 文件存储，不适合多进程并发、多人协作或云平台的无持久磁盘环境。生产部署应把数据层替换为数据库（例如 PostgreSQL/Supabase），并补充更严格的字段校验、速率限制和 HTTPS。静态前端可以继续独立部署到 GitHub Pages；需要使用 API 写入时，应部署此 Node 服务并把请求地址配置到前端。
 

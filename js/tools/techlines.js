@@ -8,12 +8,11 @@ import {
   mulberry32, pick, randInt, clamp, debounce,
   downloadSVG, svgToPng, injectStyle,
   segmentSubjects, subjectSilhouette, dilatedSilhouette,
-  loadImageFile, imageToCanvas, demoSubjectsImage,
+  loadImageFile, imageToCanvas, makeCanvas,
   ART_PALETTES, hexToRgb, buildControls, panelSection,
 } from "./shared.js";
 
 const NS = "http://www.w3.org/2000/svg";
-const XLINK = "http://www.w3.org/1999/xlink";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 // ---------- 纸张主题 ----------
@@ -549,13 +548,41 @@ const VIVID = (() => {
   return out.length ? out : ["#F9064B", "#049F73", "#2B2BE6", "#F89812"];
 })();
 
+// Nine distinct organic silhouettes, spaced apart for reliable segmentation.
+function technicalDemo() {
+  const canvas = makeCanvas(900, 900), ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 900, 900);
+  ctx.fillStyle = "#111111";
+  for (let i = 0; i < 9; i++) {
+    const cx = 150 + i % 3 * 300, cy = 150 + Math.floor(i / 3) * 300;
+    ctx.beginPath();
+    for (let n = 0; n <= 180; n++) {
+      const a = n / 180 * Math.PI * 2;
+      const r = 74 * (1 + .15 * Math.sin(a * (3 + i % 5) + i) + .11 * Math.cos(a * (6 + i % 3)));
+      const x = cx + Math.cos(a) * r * (i % 3 === 1 ? .75 : 1);
+      const y = cy + Math.sin(a) * r * (i % 3 === 1 ? 1.18 : 1);
+      if (n === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+  return canvas;
+}
+
 // ---------- 参数预设（从默认值变化出的组合，供工具头部芯片一键切换）----------
 const PRESETS = [
+  { id: "reference-dense", name: "视频 · 密集线稿叠印", values: {
+    ratio: "1:1", density: 5, gridRows: 5, layout: "aligned", guides: false,
+    cellBorders: true, overlayCount: 9, overlayScale: .55, overlayStyle: "registration", complexity: 4,
+  } },
+  { id: "reference-nine", name: "视频 · 九宫格标本", values: {
+    ratio: "1:1", density: 3, gridRows: 3, layout: "aligned", guides: false,
+    cellBorders: false, overlayCount: 9, overlayScale: .60, overlayStyle: "registration", complexity: 4,
+  } },
   {
     id: "dense-blueprint",
     name: "密集蓝图",
     values: {
-      theme: "blue", density: 4, complexity: 5, strokeWidth: 0.8,
+      theme: "blue", density: 4, gridRows: 5, layout: "scatter", complexity: 5, strokeWidth: 0.8,
       dashFreq: 0.45, annotDensity: 0.9, guides: true,
       catGeo: true, catWave: true, catFlow: true, catMech: true, catSci: true,
       overlayOn: true, overlayCount: 4,
@@ -565,7 +592,7 @@ const PRESETS = [
     id: "sparse-wave",
     name: "稀疏波形",
     values: {
-      theme: "white", density: 2, complexity: 2, strokeWidth: 1.2,
+      theme: "white", density: 2, gridRows: 3, layout: "scatter", complexity: 2, strokeWidth: 1.2,
       dashFreq: 0.15, annotDensity: 0.4, guides: false,
       catGeo: false, catWave: true, catFlow: false, catMech: false, catSci: false,
       overlayOn: true, overlayCount: 3,
@@ -575,7 +602,7 @@ const PRESETS = [
     id: "kraft-mech",
     name: "牛皮机械",
     values: {
-      theme: "kraft", density: 3, complexity: 4, strokeWidth: 1.4,
+      theme: "kraft", density: 3, gridRows: 4, layout: "scatter", complexity: 4, strokeWidth: 1.4,
       dashFreq: 0.3, annotDensity: 0.7, guides: true,
       catGeo: false, catWave: false, catFlow: false, catMech: true, catSci: false,
       overlayOn: false, overlayCount: 5,
@@ -590,26 +617,10 @@ export default {
   id: "techlines",
   name: "技术线稿生成器",
   nameEn: "Technical Line Generator",
-  desc: "一键生成工程图纸感的技术线稿海报：几何、波形、流程、机械等图形随机组合，可叠加彩色图形主体，导出 SVG/PNG。",
+  desc: "九宫格标本与密集工程线稿，彩色异形主体居中叠印；可调网格行列、轮廓与图形细节，导出 SVG/PNG。",
   tags: ["生成式", "工程图纸", "SVG", "随机种子"],
   presets: PRESETS,
-  cover: `<svg viewBox="0 0 280 120" xmlns="http://www.w3.org/2000/svg">
-    <rect width="280" height="120" fill="#fbfbf8"/>
-    <g stroke="#d8d5cc" stroke-width="1"><path d="M70 0V120M140 0V120M210 0V120M0 40H280M0 80H280"/></g>
-    <g stroke="#141414" fill="none" stroke-width="1.2">
-      <circle cx="35" cy="60" r="24"/><circle cx="35" cy="60" r="14"/><circle cx="35" cy="60" r="5"/>
-      <path d="M35 30V90M5 60H65" stroke-width=".7"/>
-      <path d="M80 60 q10 -34 20 0 t20 0 t20 0 t20 0" />
-      <path d="M225 88 V40 h18 v12 h-18 M225 64 h18 v12 h-18" stroke-width="1"/>
-      <circle cx="252" cy="46" r="4"/><circle cx="252" cy="70" r="4"/>
-      <path d="M243 46 h5 M243 70 h5" stroke-width=".8"/>
-    </g>
-    <g fill="#141414" font-family="ui-monospace,Menlo,monospace" font-size="6">
-      <text x="10" y="14">[01] NODE-334</text><text x="150" y="14">fig.10</text>
-      <text x="150" y="110">// sweep offset locked</text>
-    </g>
-    <path d="M150 30 l38 22 -6 30 -34 8 -22 -26 z" fill="#0AF0A7" stroke="#fff" stroke-width="5" stroke-linejoin="round" opacity=".92"/>
-  </svg>`,
+  cover: `<img src="./assets/tools/techlines-preview.png" alt="九宫格技术线稿与彩色异形叠印效果" loading="lazy" style="object-fit:contain;background:#fff"/>`,
 
   mount(container, options = {}) {
     injectStyle("techlines", `
@@ -619,10 +630,11 @@ export default {
 
     // ---------- 状态 ----------
     const values = {
-      ratio: "3:4", theme: "white", density: 3, guides: true,
+      ratio: "1:1", theme: "white", density: 5, gridRows: 5, guides: false,
+      cellBorders: true, layout: "aligned", overlayScale: .55, overlayStyle: "registration",
       strokeWidth: 1, complexity: 3, dashFreq: 0.3, annotDensity: 0.7,
       catGeo: true, catWave: true, catFlow: true, catMech: true, catSci: true,
-      overlayOn: true, overlayCount: 5,
+      overlayOn: true, overlayCount: 9,
     };
     if (options.presetId) {
       const preset = PRESETS.find((p) => p.id === options.presetId);
@@ -632,10 +644,12 @@ export default {
       seed: (Math.random() * 1e9) >>> 0,
       scatterSeed: (Math.random() * 1e9) >>> 0,
       subjects: [],
+      destroyed: false,
+      loadVersion: 0,
     };
     // 默认色块：内置演示图分割
     try {
-      state.subjects = segmentSubjects(demoSubjectsImage()).subjects;
+      state.subjects = segmentSubjects(technicalDemo()).subjects;
     } catch { state.subjects = []; }
 
     // ---------- DOM ----------
@@ -649,6 +663,7 @@ export default {
 
     // ---------- 渲染 ----------
     function render() {
+      if (state.destroyed) return;
       const W = 900, H = RATIOS[values.ratio] || 1200;
       const theme = THEMES[values.theme] || THEMES.white;
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -683,16 +698,16 @@ export default {
       }
       txt(frame, M, M - 10, `TLG // SHEET ${refCode(rng)}`, s, { size: 8, ls: 1 });
       txt(frame, W - M, M - 10, `SEED ${state.seed}`, s, { size: 7, anchor: "end" });
-      txt(frame, M, H - M + 16, `DRAWN BY POSTER-LAB / ${values.ratio} / SCALE 1:1`, s, { size: 6 });
+      txt(frame, M, H - M + 16, `${values.ratio} / SCALE 1:1 / TECHNICAL STUDIES`, s, { size: 6 });
       txt(frame, W - M, H - M + 16, fakeParam(rng), s, { size: 6, anchor: "end" });
 
       // 单元格网格
-      const cols = clamp(Math.round(values.density), 2, 4);
-      const rows = clamp(cols + 1, 3, 5);
+      const cols = clamp(Math.round(values.density), 2, 6);
+      const rows = clamp(Math.round(values.gridRows), 2, 6);
       const gw = (W - M * 2) / cols, gh = (H - M * 2) / rows;
       const gridG = el("g", {}, svg);
-      for (let i = 1; i < cols; i++) ln(gridG, M + i * gw, M, M + i * gw, H - M, s, { sw: s.sw * 0.5 });
-      for (let i = 1; i < rows; i++) ln(gridG, M, M + i * gh, W - M, M + i * gh, s, { sw: s.sw * 0.5 });
+      if (values.cellBorders) for (let i = 1; i < cols; i++) ln(gridG, M + i * gw, M, M + i * gw, H - M, s, { sw: s.sw * 0.5 });
+      if (values.cellBorders) for (let i = 1; i < rows; i++) ln(gridG, M, M + i * gh, W - M, M + i * gh, s, { sw: s.sw * 0.5 });
 
       // 可用绘制器
       let drawers = CATEGORIES.filter((c) => values[c.key]).flatMap((c) => c.drawers);
@@ -703,7 +718,10 @@ export default {
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++, idx++) {
           const cell = { x: M + c * gw, y: M + r * gh, w: gw, h: gh };
-          const g = el("g", {}, svg);
+          const defs = svg.querySelector("defs") || el("defs", {}, svg);
+          const clip = el("clipPath", { id: `tl-cell-${idx}` }, defs);
+          el("rect", {x:cell.x+2,y:cell.y+2,width:cell.w-4,height:cell.h-4}, clip);
+          const g = el("g", {"clip-path": `url(#tl-cell-${idx})`}, svg);
           // 通用格内标注
           txt(g, cell.x + 6, cell.y + 12, `[${String(idx + 1).padStart(2, "0")}]`, s, { size: 6 });
           if (rng() < s.annot) txt(g, cell.x + cell.w - 6, cell.y + 12, pick(rng, COMMENTS), s, { size: 4.6, anchor: "end" });
@@ -730,34 +748,44 @@ export default {
       if (values.overlayOn && state.subjects.length) {
         const og = el("g", {}, svg);
         const rng2 = mulberry32(state.scatterSeed);
-        const count = clamp(Math.round(values.overlayCount), 2, 10);
+        const count = clamp(Math.round(values.overlayCount), 1, 16);
+        const motifCols = Math.ceil(Math.sqrt(count));
+        const motifRows = Math.ceil(count / motifCols);
+        const cw = (W - M * 2) / motifCols, ch = (H - M * 2) / motifRows;
+        const palette = ["#3225e9", "#f33312", "#27eeb2", "#40e839", "#a4ec0e", "#ffc72b", "#229de7", "#f01494", "#b230ee"];
         for (let i = 0; i < count; i++) {
-          const subject = state.subjects[randInt(rng2, 0, state.subjects.length - 1)];
-          const color = pick(rng2, VIVID);
-          const tw = 90 + rng2() * 140;
-          const scale = tw / subject.w;
-          const th = subject.h * scale;
-          const px = M * 0.4 + rng2() * (W - M * 0.8 - tw);
-          const py = M * 0.4 + rng2() * (H - M * 0.8 - th);
+          const subject = state.subjects[i % state.subjects.length];
+          const color = palette[i % palette.length];
+          const scale = Math.min(cw * values.overlayScale / subject.w, ch * values.overlayScale / subject.h);
+          const tw = subject.w * scale, th = subject.h * scale;
+          const px = values.layout === "aligned" ? M + (i % motifCols + .5) * cw - tw / 2 : M + rng2() * (W - M * 2 - tw);
+          const py = values.layout === "aligned" ? M + (Math.floor(i / motifCols) + .5) * ch - th / 2 : M + rng2() * (H - M * 2 - th);
+          const addImage = (canvas, dx = 0, dy = 0) => {
+            const pad = canvas.pad || 0;
+            const node = el("image", {
+              x: px - pad * scale + dx, y: py - pad * scale + dy,
+              width: canvas.width * scale, height: canvas.height * scale,
+              preserveAspectRatio: "none",
+            }, og);
+            node.setAttribute("href", canvas.toDataURL("image/png"));
+          };
           try {
-            const halo = dilatedSilhouette(subject, 10, "#ffffff");
-            const sil = subjectSilhouette(subject, color);
-            const haloImg = el("image", {
-              x: (px - halo.pad * scale).toFixed(1), y: (py - halo.pad * scale).toFixed(1),
-              width: (halo.width * scale).toFixed(1), height: (halo.height * scale).toFixed(1),
-              preserveAspectRatio: "none",
-            }, og);
-            const haloUrl = halo.toDataURL("image/png");
-            haloImg.setAttribute("href", haloUrl);
-            haloImg.setAttributeNS(XLINK, "xlink:href", haloUrl);
-            const silImg = el("image", {
-              x: px.toFixed(1), y: py.toFixed(1),
-              width: tw.toFixed(1), height: th.toFixed(1),
-              preserveAspectRatio: "none",
-            }, og);
-            const silUrl = sil.toDataURL("image/png");
-            silImg.setAttribute("href", silUrl);
-            silImg.setAttributeNS(XLINK, "xlink:href", silUrl);
+            if (values.overlayStyle === "registration") {
+              addImage(dilatedSilhouette(subject, 5 / scale, "#fc5eb7"), 4, -3);
+              addImage(dilatedSilhouette(subject, 3 / scale, theme.line));
+            } else if (values.overlayStyle === "sticker") {
+              addImage(dilatedSilhouette(subject, 8 / scale, "#ffffff"));
+            }
+            addImage(subjectSilhouette(subject, color));
+            // Fine registration marks and crosshair through the printed silhouette.
+            if (values.overlayStyle === "registration") {
+              const details = el("g", {opacity: .65}, og);
+              ln(details, px-10, py+th/2, px+tw+10, py+th/2, s, {sw:.65,dash:"2 3"});
+              ln(details, px+tw/2, py-10, px+tw/2, py+th+10, s, {sw:.65,dash:"2 3"});
+              for (const [x,y] of [[px,py],[px+tw,py+th]]) {
+                rect(details, x-2,y-2,4,4,s,{fill:theme.bg,sw:.6});
+              }
+            }
           } catch { /* 单个主体失败不影响整体 */ }
         }
       }
@@ -786,7 +814,9 @@ export default {
         { value: "4:3", label: "4:3 · 900×675" },
       ] },
       { key: "theme", label: "纸张主题", type: "select", options: Object.entries(THEMES).map(([v, t]) => ({ value: v, label: t.label })) },
-      { key: "density", label: "网格密度（列数）", type: "range", min: 2, max: 4, step: 1 },
+      { key: "density", label: "网格密度（列数）", type: "range", min: 2, max: 6, step: 1 },
+      { key: "gridRows", label: "网格密度（行数）", type: "range", min: 2, max: 6, step: 1 },
+      { key: "cellBorders", label: "显示分格边线", type: "checkbox" },
       { key: "guides", label: "显示辅助网格线", type: "checkbox" },
     ]);
 
@@ -805,9 +835,17 @@ export default {
     buildControlsLocal([
       { key: "overlayOn", label: "启用彩色主体", type: "checkbox" },
       { key: "upload", label: "上传图片（自动分割主体）", type: "file", accept: "image/*" },
-      { key: "overlayCount", label: "色块数量", type: "range", min: 2, max: 10, step: 1 },
-      { key: "reshuffle", label: "重新散布色块", type: "button", onClick: () => {
+      { key: "layout", label: "主体编排", type: "select", options: [
+        {value:"aligned",label:"逐格居中"}, {value:"scatter",label:"自由散布"},
+      ] },
+      { key: "overlayStyle", label: "主体轮廓", type: "select", options: [
+        {value:"registration",label:"彩色错位叠印"}, {value:"sticker",label:"白色贴纸边"}, {value:"flat",label:"纯色剪影"},
+      ] },
+      { key: "overlayScale", label: "主体尺寸", type: "range", min: .25, max: .8, step: .05 },
+      { key: "overlayCount", label: "色块数量", type: "range", min: 1, max: 16, step: 1 },
+      { key: "reshuffle", label: "重新组合主体", type: "button", onClick: () => {
         state.scatterSeed = (Math.random() * 1e9) >>> 0;
+        state.subjects = [...state.subjects.slice(1), ...state.subjects.slice(0, 1)];
         render();
       } },
     ]);
@@ -826,8 +864,10 @@ export default {
     const onFile = async () => {
       const file = fileInput.files && fileInput.files[0];
       if (!file) return;
+      const version = ++state.loadVersion;
       try {
         const img = await loadImageFile(file);
+        if (state.destroyed || version !== state.loadVersion) return;
         const { subjects } = segmentSubjects(imageToCanvas(img, 1200));
         if (subjects.length) {
           state.subjects = subjects;
@@ -861,6 +901,7 @@ export default {
 
     // ---------- 清理 ----------
     return () => {
+      state.destroyed = true;
       window.removeEventListener("keydown", onKey);
       if (fileInput) fileInput.removeEventListener("change", onFile);
       container.innerHTML = "";

@@ -110,6 +110,22 @@ test("malformed JSON and unknown routes return useful errors", async () => {
   assert.equal(missing.response.status, 404);
 });
 
+test("retired AI endpoints and modules are unavailable", async () => {
+  for (const endpoint of ["/api/ai/responses", "/api/ai/images/edits"]) {
+    for (const authorization of [undefined, "Bearer test-secret"]) {
+      const result = await request(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", ...(authorization ? { authorization } : {}) },
+        body: "{}",
+      });
+      assert.equal(result.response.status, 404);
+    }
+  }
+  for (const endpoint of ["/js/skills.js", "/data/skills.js"]) {
+    assert.equal((await fetch(`${baseUrl}${endpoint}`)).status, 404);
+  }
+});
+
 test("private project files cannot be served", async () => {
   const git = await request("/.git/HEAD");
   assert.equal(git.response.status, 404);

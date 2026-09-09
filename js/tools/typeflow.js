@@ -7,8 +7,7 @@ import {
   segmentSubjects,
   subjectCutout,
   subjectPixelate,
-  subjectHalftone,
-  stickerOutline,
+  dilatedSilhouette,
   loadImageFile,
   loadImageUrl,
   imageToCanvas,
@@ -17,10 +16,13 @@ import {
   clamp,
   debounce,
   downloadCanvasPNG,
-  demoSubjectsImage,
+  injectStyle,
   buildControls,
   panelSection,
 } from "./shared.js";
+
+import { typeflowDemo } from "./typeflow-demo.js";
+import { maskRows, freeSpans } from "./typeflow-layout.js";
 
 const CANVAS_W = 1100;
 const MARGIN = 52;
@@ -31,7 +33,7 @@ const DEFAULT_SMALL_TEXT =
   "Auto-detected core structure and edge luminance contours. Spatial recognition engine analyzes object relations in real time. Semantic typography matrix redefines modern visual compositions. Dynamic contour avoidance algorithm flows seamlessly across boundaries.";
 
 const MAIN_FONT = (size) =>
-  `500 ${size}px "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif`;
+  `300 ${size}px "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif`;
 const SMALL_FONT = (size) =>
   `400 ${size}px "Helvetica Neue", "PingFang SC", Arial, sans-serif`;
 
@@ -89,42 +91,39 @@ export default {
   id: "typeflow",
   name: "图文语义混排",
   nameEn: "Type-Flow Collage",
-  desc: "大标题文字自动绕排避让图片主体，小注释文字贴轮廓填缝，支持像素化/半调/贴纸描边特效，一键生成图文咬合的实验排版。",
+  desc: "大字贴真实轮廓绕排，小字填缝；原图、彩色半调、像素拼贴与多层空心轮廓自由切换，主体可直接拖动。",
   tags: ["文字绕排", "拼贴", "贴纸描边", "实验排版"],
-  cover: `<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-    <rect width="200" height="140" fill="#ffffff"/>
-    <rect x="18" y="20" width="76" height="14" fill="#111"/>
-    <rect x="128" y="20" width="54" height="14" fill="#111"/>
-    <rect x="18" y="44" width="164" height="14" fill="#111"/>
-    <rect x="18" y="68" width="40" height="14" fill="#111"/>
-    <rect x="142" y="68" width="40" height="14" fill="#111"/>
-    <rect x="18" y="92" width="98" height="14" fill="#111"/>
-    <rect x="150" y="92" width="32" height="14" fill="#111"/>
-    <path d="M96 56 C118 50 130 62 126 80 C122 98 100 104 86 94 C72 84 74 62 96 56 Z"
-      fill="#e8734a" stroke="#111" stroke-width="3"/>
-    <g fill="#999" font-size="5" font-family="sans-serif">
-      <text x="20" y="118">auto detected</text>
-      <text x="20" y="125">contour flow</text>
-      <text x="150" y="118">semantic</text>
-      <text x="150" y="125">matrix</text>
-    </g>
-  </svg>`,
+  cover: `<img src="./assets/tools/typeflow-preview.png" alt="大字轮廓绕排与多层描边拼贴效果" loading="lazy" style="object-fit:contain;background:#fff"/>`,
 
   mount(container, options = {}) {
+    injectStyle("typeflow", `.typeflow-stage{flex-direction:column;align-items:center;gap:12px}.typeflow-stage canvas{max-height:78vh;max-width:100%;width:auto!important;height:auto}.typeflow-stage .tc-info{width:100%;text-align:center}`);
     // ---------- 状态 ----------
     const values = {
       threshold: 60,
+      subjectCount: 4,
       fxMode: "raw", // raw | pixelate | halftone
       grain: 12,
-      outlineLayers: 0,
+      outlineLayers: 3,
+      imageOn: true,
+      subjectScale: 1,
+      contourGap: 7,
+      paper: "#ffffff",
+      ink: "#111111",
       outlineGap: 10,
-      mainText: DEFAULT_MAIN_TEXT,
-      mainSize: 90,
-      mainLead: 1.1,
+      mainText: "梦境 解构 DREAM DECONSTRUCTION 错位 拼贴",
+      mainSize: 130,
+      mainLead: 1.05,
       smallOn: true,
       smallSize: 10,
       smallText: DEFAULT_SMALL_TEXT,
       ratio: "1:1",
+    };
+    const looks = {
+      contour: { fxMode: "raw", imageOn: true, outlineLayers: 3, mainSize: 130, grain: 12 },
+      classic: { fxMode: "raw", imageOn: true, outlineLayers: 0, mainSize: 100, grain: 12 },
+      hollow: { fxMode: "raw", imageOn: false, outlineLayers: 3, mainSize: 160, grain: 12 },
+      dots: { fxMode: "halftone", imageOn: true, outlineLayers: 0, mainSize: 190, grain: 28 },
+      pixels: { fxMode: "pixelate", imageOn: true, outlineLayers: 0, mainSize: 130, grain: 28 },
     };
     const state = {
       srcCanvas: null, // 输入图
@@ -133,12 +132,13 @@ export default {
       layout: [], // 放置结果 [{cx, cy, scale}]，与 fxItems 一一对应
       seed: 20260820,
       destroyed: false,
+      loadVersion: 0,
     };
 
     // ---------- DOM ----------
     const panel = document.createElement("div");
     const stage = document.createElement("div");
-    stage.className = "tool-stage";
+    stage.className = "tool-stage typeflow-stage";
     const canvas = makeCanvas(CANVAS_W, CANVAS_W);
     stage.append(canvas);
     container.append(panel, stage);
@@ -150,9 +150,10 @@ export default {
       if (!state.srcCanvas) return;
       const res = segmentSubjects(state.srcCanvas, {
         threshold: values.threshold,
-        maxSubjects: 10,
+        maxSubjects: values.subjectCount,
       });
       state.subjects = res.subjects;
+      if (!res.subjects.length) status.textContent = "未识别出主体，请调整阈值或使用透明底、纯色底图片。";
     }
 
     // 2) 特效：原图 / 像素化 / 半调 + 可选贴纸描边
@@ -162,21 +163,39 @@ export default {
         if (values.fxMode === "pixelate") {
           base = subjectPixelate(state.srcCanvas, s, { size: values.grain });
         } else if (values.fxMode === "halftone") {
-          base = subjectHalftone(state.srcCanvas, s, {
-            dot: values.grain,
-            color: "#111111",
-            useLuma: true,
-          });
+          base = makeCanvas(s.w, s.h);
+          const dots = base.getContext("2d");
+          const cut = subjectCutout(state.srcCanvas, s).getContext("2d").getImageData(0, 0, s.w, s.h).data;
+          const step = values.grain;
+          for (let y = Math.floor(step / 2); y < s.h; y += step) {
+            for (let x = Math.floor(step / 2); x < s.w; x += step) {
+              const i = (y * s.w + x) * 4;
+              if (cut[i + 3] < 40) continue;
+              dots.fillStyle = `rgb(${cut[i]},${cut[i + 1]},${cut[i + 2]})`;
+              dots.beginPath(); dots.arc(x, y, step * .46, 0, Math.PI * 2); dots.fill();
+            }
+          }
         } else {
           base = subjectCutout(state.srcCanvas, s);
         }
-        let out = base;
-        let pad = 0;
-        if (values.outlineLayers > 0) {
-          out = stickerOutline(base, s, values.outlineLayers, values.outlineGap);
-          pad = out.pad || 0;
+        const pad = values.outlineLayers * values.outlineGap + 5;
+        const out = makeCanvas(s.w + pad * 2, s.h + pad * 2);
+        const oc = out.getContext("2d");
+        // Each contour is a thin ink edge around a paper-filled dilation.
+        for (let layer = values.outlineLayers; layer >= 1; layer--) {
+          for (const [radius, color] of [[layer * values.outlineGap, values.ink], [Math.max(0, layer * values.outlineGap - 1.8), values.paper]]) {
+            const ring = dilatedSilhouette(s, radius, color);
+            oc.drawImage(ring, pad - ring.pad, pad - ring.pad);
+          }
         }
-        return { subject: s, canvas: out, pad };
+        if (values.imageOn) oc.drawImage(base, pad, pad);
+        // Reserve the solid subject even when its image is hidden or dotted.
+        const reserve = makeCanvas(out.width, out.height), rc = reserve.getContext("2d");
+        const silhouette = dilatedSilhouette(s, values.outlineLayers * values.outlineGap, "#000000");
+        rc.drawImage(silhouette, pad - silhouette.pad, pad - silhouette.pad);
+        const rows = maskRows(rc.getImageData(0, 0, out.width, out.height).data, out.width, out.height);
+        return { subject: s, canvas: out, pad, rows };
+
       });
     }
 
@@ -206,9 +225,9 @@ export default {
         const s = fx.subject;
         // 面积大的主体略大：按面积排名从 24% 递减到 14%
         const t = n > 1 ? i / (n - 1) : 0;
-        const frac = clamp(0.24 - 0.1 * t + (rng() - 0.5) * 0.02, 0.14, 0.24);
+        const frac = clamp(0.20 - 0.07 * t + (rng() - 0.5) * 0.02, 0.13, 0.20);
         const contentW = CANVAS_W * frac;
-        const scale = Math.min(contentW / s.w, (H * 0.32) / s.h);
+        const scale = Math.min(contentW / fx.canvas.width, (H * 0.24) / fx.canvas.height);
         const drawW = fx.canvas.width * scale;
         const drawH = fx.canvas.height * scale;
         const [cc, cr] = cells[i % cells.length];
@@ -238,10 +257,12 @@ export default {
       return state.fxItems.map((fx, i) => {
         const lay = state.layout[i];
         if (!lay) return null;
-        const w = fx.canvas.width * lay.scale;
-        const h = fx.canvas.height * lay.scale;
+        const scale = Math.min(lay.scale * values.subjectScale, (CANVAS_W - 24) / fx.canvas.width, (H - 24) / fx.canvas.height);
+        const w = fx.canvas.width * scale;
+        const h = fx.canvas.height * scale;
         return {
           fx,
+          rows: fx.rows, sourceWidth: fx.canvas.width, sourceHeight: fx.canvas.height,
           rect: {
             x: clamp(lay.cx - w / 2, 4, Math.max(4, CANVAS_W - w - 4)),
             y: clamp(lay.cy - h / 2, 4, Math.max(4, H - h - 4)),
@@ -257,136 +278,79 @@ export default {
       const H = canvasHeight();
       if (canvas.height !== H) canvas.height = H;
       canvas.width = CANVAS_W;
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = values.paper;
       ctx.fillRect(0, 0, CANVAS_W, H);
 
       // 主体
       const items = itemRects(H);
-      const obstacles = [];
       for (const it of items) {
         ctx.drawImage(it.fx.canvas, it.rect.x, it.rect.y, it.rect.w, it.rect.h);
-        obstacles.push({
-          x: it.rect.x - 4,
-          y: it.rect.y - 4,
-          w: it.rect.w + 8,
-          h: it.rect.h + 8,
-        });
       }
 
-      // 大标题：逐词从左到右，遇主体推到其右侧，放不下换行
+      // Typeset within silhouette-derived free intervals, preserving every token.
       const size = values.mainSize;
-      const lineStep = size * values.mainLead;
-      ctx.font = MAIN_FONT(size);
-      ctx.fillStyle = "#111111";
-      ctx.textBaseline = "alphabetic";
       const tokens = tokenize(values.mainText);
-      const wordGap = size * 0.22;
       const wordRects = [];
-      let x = MARGIN;
-      let y = MARGIN + size * 0.86; // 首行基线
-      for (const token of tokens) {
-        const tw = ctx.measureText(token).width;
-        let placed = false;
-        let guard = 0;
-        while (!placed && guard++ < 40) {
-          if (y - size * 0.82 > H - MARGIN) break; // 超出底部，停止
-          const rect = { x, y: y - size * 0.82, w: tw, h: size * 0.94 };
-          const hit = obstacles.find((o) => rectsIntersect(rect, o, 2));
-          if (hit) {
-            x = hit.x + hit.w + wordGap * 0.4; // 推到主体右缘
-            if (x + tw > CANVAS_W - MARGIN) {
-              x = MARGIN;
-              y += lineStep;
-            }
-            continue;
+      ctx.fillStyle = values.ink;
+      ctx.textBaseline = "alphabetic";
+      let tokenIndex = 0;
+      for (let top = MARGIN; top + size <= H - MARGIN && tokenIndex < tokens.length; top += size * values.mainLead) {
+        const spans = freeSpans(items, top, top + size, MARGIN, CANVAS_W - MARGIN, values.contourGap);
+        for (const [left, right] of spans) {
+          let x = left;
+          while (tokenIndex < tokens.length) {
+            const token = tokens[tokenIndex];
+            ctx.font = MAIN_FONT(size);
+            const natural = ctx.measureText(token).width;
+            // Long English words may condense to a full line, never disappear.
+            const available = right - x;
+            const width = /^[A-Za-z0-9]/.test(token) && token.length >= 4 && available >= natural * .42
+              ? Math.min(natural, available) : natural;
+            if (x + width > right) break;
+            const fontSize = size * width / natural;
+            ctx.font = MAIN_FONT(fontSize);
+            ctx.fillText(token, x, top + size * .83);
+            wordRects.push({ x, y: top + (size-fontSize)*.83, w: width, h: fontSize });
+            x += width + size * .12;
+            tokenIndex++;
           }
-          if (x + tw > CANVAS_W - MARGIN) {
-            if (x === MARGIN) break; // 单词比整行还宽，跳过防死循环
-            x = MARGIN;
-            y += lineStep;
-            continue;
-          }
-          ctx.fillText(token, x, y);
-          wordRects.push(rect);
-          x += tw + wordGap;
-          placed = true;
         }
-        if (y - size * 0.82 > H - MARGIN) break;
       }
-
-      // 小字填缝：贴主体四周空隙放 1–3 块 3–5 行注释
-      if (values.smallOn) {
-        drawSmallText(items, obstacles, wordRects, H);
-      }
+      status.textContent = !items.length ? "未识别出主体，请调整阈值或使用透明底、纯色底图片。" : tokenIndex < tokens.length
+        ? `还有 ${tokens.length - tokenIndex} 组文字未排入，请减小字号或主体尺寸。`
+        : `${items.length} 个主体 · 拖动图像可调整位置 · 预览与导出不含水印`;
+      if (values.smallOn) drawSmallText(items, wordRects, H);
     }
 
-    function drawSmallText(items, obstacles, wordRects, H) {
-      const pool = values.smallText.split(/\s+/).filter(Boolean);
+    function drawSmallText(items, wordRects, H) {
+      const pool = tokenize(values.smallText);
       if (!pool.length) return;
-      const sSize = values.smallSize;
-      const lineH = sSize * 1.4;
-      ctx.font = SMALL_FONT(sSize);
-      ctx.fillStyle = "#555555";
-      const rng = mulberry32(state.seed * 31 + 7);
-      let poolIdx = 0;
-      const nextWord = () => pool[poolIdx++ % pool.length];
-      const placedBlocks = [];
-
-      const blockFits = (rect) => {
-        if (rect.x < 12 || rect.y < 12) return false;
-        if (rect.x + rect.w > CANVAS_W - 12 || rect.y + rect.h > H - 12) return false;
-        if (obstacles.some((o) => rectsIntersect(rect, o, 4))) return false;
-        if (wordRects.some((w) => rectsIntersect(rect, w, 3))) return false;
-        if (placedBlocks.some((b) => rectsIntersect(rect, b, 6))) return false;
-        return true;
-      };
-
-      for (const it of items) {
-        const r = it.rect;
-        const blockCount = 1 + Math.floor(rng() * 3); // 1–3 块
-        const sides = ["left", "right", "top", "bottom"].sort(() => rng() - 0.5);
-        let made = 0;
-        for (const side of sides) {
-          if (made >= blockCount) break;
-          // 组装 3–5 行，行宽 60–110px
-          const lines = [];
-          const lineCount = 3 + Math.floor(rng() * 3);
-          const targetW = 60 + rng() * 50;
-          let blockW = 0;
-          for (let li = 0; li < lineCount; li++) {
-            let line = nextWord();
-            while (ctx.measureText(line).width < targetW) {
-              const w2 = line + " " + nextWord();
-              if (ctx.measureText(w2).width > 110) break;
-              line = w2;
+      const size = values.smallSize, lineH = size * 1.3;
+      ctx.font = SMALL_FONT(size);
+      ctx.fillStyle = values.ink;
+      ctx.globalAlpha = .62;
+      let index = 0;
+      // Narrow columns follow the changing contour at each baseline.
+      for (let y = MARGIN; y + lineH < H - MARGIN; y += lineH) {
+        const spans = freeSpans(items, y, y + lineH, MARGIN, CANVAS_W - MARGIN, values.contourGap);
+        for (const [left, right] of spans) {
+          for (let x = left; x < right - 20; x += 92) {
+            const w = Math.min(82, right - x);
+            const box = { x, y, w, h: lineH };
+            const nearby = items.some(({rect:r}) => x + w > r.x - 95 && x < r.x + r.w + 95 && y > r.y - 38 && y < r.y + r.h + 38);
+            if (!nearby || wordRects.some(r => rectsIntersect(box, r, 5))) continue;
+            let line = "", consumed = 0;
+            for (let k = 0; k < 15; k++) {
+              const token = pool[(index + k) % pool.length];
+              const next = line ? line + " " + token : token;
+              if (ctx.measureText(next).width > w) break;
+              line = next; consumed++;
             }
-            blockW = Math.max(blockW, ctx.measureText(line).width);
-            lines.push(line);
+            if (line) { ctx.fillText(line, x, y + size); index += consumed; }
           }
-          const blockH = lines.length * lineH;
-          let bx, by;
-          if (side === "left") {
-            bx = r.x - blockW - 10;
-            by = r.y + rng() * Math.max(1, r.h - blockH);
-          } else if (side === "right") {
-            bx = r.x + r.w + 10;
-            by = r.y + rng() * Math.max(1, r.h - blockH);
-          } else if (side === "top") {
-            bx = r.x + rng() * Math.max(1, r.w - blockW);
-            by = r.y - blockH - 10;
-          } else {
-            bx = r.x + rng() * Math.max(1, r.w - blockW);
-            by = r.y + r.h + 10;
-          }
-          const rect = { x: bx, y: by, w: blockW, h: blockH };
-          if (!blockFits(rect)) continue;
-          lines.forEach((line, li) => {
-            ctx.fillText(line, bx, by + sSize + li * lineH);
-          });
-          placedBlocks.push(rect);
-          made++;
         }
       }
+      ctx.globalAlpha = 1;
     }
 
     // ---------- 管线调度 ----------
@@ -407,13 +371,35 @@ export default {
 
     // ---------- 控件 ----------
     const onChange = (key) => {
-      if (key === "threshold") scheduleSegment();
-      else if (["fxMode", "grain", "outlineLayers", "outlineGap"].includes(key))
+      if (["threshold", "subjectCount"].includes(key)) scheduleSegment();
+      else if (["fxMode", "grain", "outlineLayers", "outlineGap", "imageOn", "paper", "ink"].includes(key))
         scheduleFx();
       else if (key === "ratio") runAll({ replace: true });
       else scheduleDraw();
     };
 
+    const status = document.createElement("p");
+    status.className = "tc-info";
+    status.setAttribute("role", "status");
+    stage.append(status);
+    panelSection(panel, "视频效果预设");
+    buildControls(panel, [{ key: "look", label: "一键切换效果", type: "select", options: [
+      { value: "contour", label: "多层轮廓拼贴" }, { value: "classic", label: "轻字密集混排" },
+      { value: "hollow", label: "空心轮廓" }, { value: "dots", label: "彩色半调大字" }, { value: "pixels", label: "像素拼贴" },
+    ] }], {look:"contour"}, (_, look) => {
+      Object.assign(values, looks[look]);
+      if ([DEFAULT_MAIN_TEXT, "梦境 解构 DREAM", "梦境 解构 DREAM DECONSTRUCTION 错位 拼贴"].includes(values.mainText)) {
+        values.mainText = look === "classic" ? DEFAULT_MAIN_TEXT : ["dots", "hollow"].includes(look) ? "梦境 解构 DREAM" : "梦境 解构 DREAM DECONSTRUCTION 错位 拼贴";
+      }
+      textControls.mainText.value = values.mainText;
+      for (const [key, input] of Object.entries(fxControls)) {
+        if (input.type === "checkbox") input.checked = !!values[key]; else input.value = values[key];
+        const val = input.closest(".tc-field").querySelector(".tc-val"); if (val) val.textContent = values[key];
+      }
+      textControls.mainSize.value = values.mainSize;
+      textControls.mainSize.closest(".tc-field").querySelector(".tc-val").textContent = values.mainSize;
+      runAll({refx:true});
+    });
     panelSection(panel, "图像输入");
     buildControls(
       panel,
@@ -424,6 +410,7 @@ export default {
           type: "file",
           accept: "image/*",
         },
+        { key: "subjectCount", label: "主体数量上限", type: "range", min: 1, max: 10 },
         { key: "threshold", label: "环境色分离阈值", type: "range", min: 10, max: 200 },
       ],
       values,
@@ -431,12 +418,14 @@ export default {
         if (key === "imageFile") {
           const file = v && v[0];
           if (!file) return;
+          const version = ++state.loadVersion;
           loadImageFile(file)
             .then((img) => {
+              if (state.destroyed || version !== state.loadVersion) return;
               state.srcCanvas = imageToCanvas(img, 1400);
               runAll({ resegment: true });
             })
-            .catch(() => {});
+            .catch(() => { if (!state.destroyed && version === state.loadVersion) status.textContent = "图片读取失败，请重新选择图片。"; });
           return;
         }
         onChange(key);
@@ -444,7 +433,7 @@ export default {
     );
 
     panelSection(panel, "视觉特效");
-    buildControls(
+    const fxControls = buildControls(
       panel,
       [
         {
@@ -454,9 +443,10 @@ export default {
           options: [
             { value: "raw", label: "原图" },
             { value: "pixelate", label: "像素化 Pixelate" },
-            { value: "halftone", label: "半调网点 Halftone" },
+            { value: "halftone", label: "彩色半调 Halftone" },
           ],
         },
+        { key: "imageOn", label: "显示主体图像（关闭后保留轮廓）", type: "checkbox" },
         { key: "grain", label: "处理粒度（像素块/网点大小）", type: "range", min: 4, max: 40 },
         {
           key: "outlineLayers",
@@ -469,7 +459,7 @@ export default {
             { value: 3, label: "3 层" },
           ],
         },
-        { key: "outlineGap", label: "描边间距", type: "range", min: 6, max: 16 },
+        { key: "outlineGap", label: "描边间距", type: "range", min: 4, max: 24 },
       ],
       values,
       (key, v) => {
@@ -479,13 +469,15 @@ export default {
     );
 
     panelSection(panel, "图文混排");
-    buildControls(
+    const textControls = buildControls(
       panel,
       [
+        { key: "subjectScale", label: "主体尺寸", type: "range", min: .5, max: 1.8, step: .05 },
+        { key: "contourGap", label: "图文避让间距", type: "range", min: 2, max: 24 },
         { key: "mainText", label: "主文字内容", type: "textarea", rows: 4 },
-        { key: "mainSize", label: "主字号", type: "range", min: 40, max: 170 },
+        { key: "mainSize", label: "主字号", type: "range", min: 40, max: 240 },
         { key: "mainLead", label: "主行距", type: "range", min: 0.9, max: 1.6, step: 0.05 },
-        { key: "smallOn", label: "轮廓避让小字（每块 3–5 行）", type: "checkbox" },
+        { key: "smallOn", label: "贴轮廓填充小字", type: "checkbox" },
         { key: "smallSize", label: "小字号", type: "range", min: 6, max: 16 },
         { key: "smallText", label: "小字文案词池", type: "textarea", rows: 4 },
       ],
@@ -528,23 +520,48 @@ export default {
       (key) => onChange(key)
     );
 
+    canvas.style.touchAction = "none";
+    canvas.style.cursor = "grab";
+    let dragging = null;
+    const pointer = e => { const r = canvas.getBoundingClientRect(); return {x:(e.clientX-r.left)*canvas.width/r.width, y:(e.clientY-r.top)*canvas.height/r.height}; };
+    canvas.addEventListener("pointerdown", e => {
+      const p = pointer(e), items = itemRects(canvasHeight());
+      for (let i = items.length - 1; i >= 0; i--) {
+        const r = items[i].rect;
+        if (p.x >= r.x && p.x <= r.x+r.w && p.y >= r.y && p.y <= r.y+r.h) {
+          dragging = {i, dx:p.x-state.layout[i].cx, dy:p.y-state.layout[i].cy};
+          canvas.setPointerCapture(e.pointerId); canvas.style.cursor="grabbing"; break;
+        }
+      }
+    });
+    canvas.addEventListener("pointermove", e => {
+      if (!dragging || state.destroyed) return;
+      const p = pointer(e), lay = state.layout[dragging.i];
+      lay.cx = clamp(p.x-dragging.dx, 0, CANVAS_W); lay.cy = clamp(p.y-dragging.dy, 0, canvasHeight());
+      draw();
+    });
+    const endDrag = () => {dragging=null;canvas.style.cursor="grab";};
+    canvas.addEventListener("pointerup", endDrag); canvas.addEventListener("pointercancel", endDrag);
+
     // ---------- 默认体验：演示图立即出图（参考图加载失败时也有兜底）----------
-    state.srcCanvas = demoSubjectsImage();
+    state.srcCanvas = typeflowDemo();
     runAll({ resegment: true });
 
     // 参考原图直接作为主体图载入
     if (options.sourceImageUrl) {
+      const version = ++state.loadVersion;
       loadImageUrl(options.sourceImageUrl)
         .then((img) => {
-          if (state.destroyed) return;
+          if (state.destroyed || version !== state.loadVersion) return;
           state.srcCanvas = imageToCanvas(img, 1400);
           runAll({ resegment: true });
         })
-        .catch(() => {});
+        .catch(() => { if (!state.destroyed && version === state.loadVersion) status.textContent = "参考图读取失败，已保留当前画布。"; });
     }
 
     return () => {
       state.destroyed = true;
+      container.replaceChildren();
     };
   },
 };
